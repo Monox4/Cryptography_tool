@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Stenography Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue: #2563EB; --blue-light: #EFF6FF; --blue-hover: #1D4ED8;
+    --gray-50: #F9FAFB; --gray-100: #F3F4F6; --gray-200: #E5E7EB;
+    --gray-300: #D1D5DB; --gray-400: #9CA3AF; --gray-500: #6B7280;
+    --gray-700: #374151; --gray-900: #111827;
+    --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-pill: 999px;
+  }
+  body { font-family: 'Inter', sans-serif; background: #fff; color: var(--gray-900); min-height: 100vh; }
+
+  /* ── LOGIN OVERLAY ── */
+  #login-overlay {
+    position: fixed; inset: 0; background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 999;
+  }
+  .login-card {
+    width: 380px; padding: 40px 36px;
+    border: 1px solid var(--gray-200); border-radius: 20px;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.06);
+    text-align: center;
+  }
+  .login-icon {
+    width: 52px; height: 52px; background: var(--blue);
+    border-radius: 14px; display: flex; align-items: center;
+    justify-content: center; margin: 0 auto 20px; color: #fff; font-size: 22px; font-weight: 700;
+  }
+  .login-title { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+  .login-sub { font-size: 13px; color: var(--gray-500); margin-bottom: 28px; line-height: 1.5; }
+  .login-input-wrap { position: relative; margin-bottom: 12px; }
+  .login-input-wrap input {
+    width: 100%; padding: 12px 14px; font-size: 14px; font-family: 'Inter', sans-serif;
+    border: 1.5px solid var(--gray-200); border-radius: var(--radius-md);
+    background: var(--gray-50); outline: none; letter-spacing: 0.08em;
+    transition: border-color 0.15s;
+  }
+  .login-input-wrap input:focus { border-color: var(--blue); background: #fff; }
+  .login-input-wrap input::placeholder { letter-spacing: 0; color: var(--gray-400); }
+  .login-btn {
+    width: 100%; padding: 13px; border-radius: var(--radius-pill);
+    background: var(--blue); color: #fff; font-size: 15px; font-weight: 600;
+    border: none; cursor: pointer; transition: background 0.15s; margin-bottom: 16px;
+  }
+  .login-btn:hover { background: var(--blue-hover); }
+  .login-err { font-size: 12px; color: #DC2626; margin-top: -6px; margin-bottom: 10px; display: none; }
+  .login-new { font-size: 12px; color: var(--gray-500); }
+  .login-new a { color: var(--blue); cursor: pointer; text-decoration: none; font-weight: 500; }
+  .login-new a:hover { text-decoration: underline; }
+  .hex-display {
+    background: var(--gray-50); border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md); padding: 14px; font-family: monospace;
+    font-size: 18px; font-weight: 700; letter-spacing: 0.15em;
+    color: var(--blue); margin: 16px 0; word-break: break-all;
+  }
+  .login-copy-btn {
+    padding: 8px 20px; border-radius: var(--radius-pill);
+    border: 1.5px solid var(--blue); background: #fff; color: var(--blue);
+    font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.12s; margin-bottom: 16px;
+  }
+  .login-copy-btn:hover { background: var(--blue-light); }
+
+  /* ── NAV ── */
+  nav {
+    display: flex; align-items: center; padding: 0 24px;
+    height: 52px; border-bottom: 1px solid var(--gray-200);
+  }
+  .nav-brand {
+    display: flex; align-items: center; gap: 8px;
+    font-weight: 600; font-size: 14px; color: var(--gray-900); text-decoration: none;
+  }
+  .nav-brand-icon {
+    width: 28px; height: 28px; background: var(--blue); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 13px; font-weight: 700;
+  }
+  .nav-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .nav-user {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--gray-500); cursor: pointer;
+  }
+  .nav-user .avatar {
+    width: 30px; height: 30px; border-radius: 50%; background: var(--blue-light);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: var(--blue); font-family: monospace;
+  }
+  .logout-btn {
+    padding: 6px 14px; border-radius: var(--radius-pill); border: 1px solid var(--gray-200);
+    background: #fff; font-size: 12px; font-weight: 500; color: var(--gray-500);
+    cursor: pointer; transition: all 0.12s;
+  }
+  .logout-btn:hover { background: var(--gray-100); color: var(--gray-700); }
+
+  /* ── TAB BAR ── */
+  .tab-bar { display: flex; gap: 10px; padding: 14px 24px; border-bottom: 1px solid var(--gray-200); }
+  .tab-btn {
+    padding: 8px 20px; border-radius: var(--radius-pill); font-size: 14px; font-weight: 500;
+    cursor: pointer; border: none; background: var(--gray-100); color: var(--gray-500); transition: all 0.15s;
+  }
+  .tab-btn.active { background: var(--blue); color: #fff; }
+  .tab-btn:hover:not(.active) { background: var(--gray-200); color: var(--gray-700); }
+
+  /* ── MAIN ── */
+  main { padding: 32px 24px; max-width: 900px; }
+  .page-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .page-subtitle { font-size: 13px; color: var(--gray-500); margin-bottom: 24px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+
+  /* ── CARDS ── */
+  .card { border: 1px solid var(--gray-200); border-radius: var(--radius-lg); padding: 20px; background: #fff; }
+  .card-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+  .card-subtitle { font-size: 12px; color: var(--gray-400); margin-bottom: 16px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); display: inline-block; }
+
+  /* ── DROP ZONE ── */
+  .dropzone {
+    border: 1.5px dashed var(--gray-300); border-radius: var(--radius-md); padding: 40px 20px;
+    text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; position: relative;
+  }
+  .dropzone:hover, .dropzone.dragover { border-color: var(--blue); background: var(--blue-light); }
+  .dropzone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .dropzone-icon { width: 40px; height: 40px; margin: 0 auto 12px; color: var(--blue); }
+  .dropzone-label { font-size: 14px; font-weight: 500; color: var(--gray-700); margin-bottom: 4px; }
+  .dropzone-hint { font-size: 12px; color: var(--gray-400); margin-bottom: 16px; }
+  .browse-btn {
+    padding: 8px 20px; border-radius: var(--radius-pill); border: 1px solid var(--gray-300);
+    background: #fff; font-size: 13px; font-weight: 500; color: var(--gray-700);
+    cursor: pointer; transition: background 0.15s;
+  }
+  .browse-btn:hover { background: var(--gray-100); }
+  .image-preview {
+    width: 120px; height: 90px; object-fit: cover; border-radius: var(--radius-sm);
+    border: 1px solid var(--gray-200); margin-top: 12px; display: none;
+  }
+  .image-preview.visible { display: block; margin: 12px auto 0; }
+
+  /* ── FORM ── */
+  label.field-label { display: block; font-size: 13px; font-weight: 500; color: var(--gray-700); margin-bottom: 6px; }
+  textarea {
+    width: 100%; border: 1px solid var(--gray-200); border-radius: var(--radius-sm);
+    padding: 10px 12px; font-size: 13px; font-family: 'Inter', sans-serif;
+    color: var(--gray-900); resize: vertical; background: var(--gray-50); outline: none;
+    transition: border-color 0.15s; min-height: 100px;
+  }
+  textarea:focus { border-color: var(--blue); background: #fff; }
+  textarea::placeholder { color: var(--gray-400); }
+  input[type=text], input[type=password] {
+    width: 100%; border: 1px solid var(--gray-200); border-radius: var(--radius-sm);
+    padding: 8px 12px; font-size: 13px; font-family: 'Inter', sans-serif;
+    color: var(--gray-900); background: var(--gray-50); outline: none; transition: border-color 0.15s;
+  }
+  input[type=text]:focus, input[type=password]:focus { border-color: var(--blue); background: #fff; }
+  input::placeholder { color: var(--gray-400); }
+  .field-group { margin-bottom: 14px; }
+
+  /* ── ALGO PILLS ── */
+  .algo-group { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .algo-pill {
+    padding: 5px 12px; border-radius: var(--radius-pill); border: 1px solid var(--gray-200);
+    background: #fff; font-size: 12px; font-weight: 500; color: var(--gray-700);
+    cursor: pointer; transition: all 0.12s;
+  }
+  .algo-pill.selected { background: var(--gray-900); color: #fff; border-color: var(--gray-900); }
+  .algo-pill:hover:not(.selected) { background: var(--gray-100); }
+
+  /* ── TOGGLE ── */
+  .toggle-row {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    padding: 14px 0; border-top: 1px solid var(--gray-100);
+  }
+  .toggle-info { flex: 1; padding-right: 12px; }
+  .toggle-info strong { font-size: 13px; font-weight: 500; display: block; margin-bottom: 2px; }
+  .toggle-info span { font-size: 11px; color: var(--gray-400); }
+  .toggle { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; inset: 0; background: var(--gray-300);
+    border-radius: var(--radius-pill); cursor: pointer; transition: background 0.2s;
+  }
+  .toggle-slider::before {
+    content: ''; position: absolute; width: 16px; height: 16px;
+    left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s;
+  }
+  .toggle input:checked + .toggle-slider { background: var(--blue); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+  /* ── CAPACITY ── */
+  .capacity-row { padding-top: 14px; border-top: 1px solid var(--gray-100); }
+  .capacity-header { display: flex; justify-content: space-between; font-size: 12px; font-weight: 500; margin-bottom: 8px; color: var(--gray-700); }
+  .capacity-header span { color: var(--gray-400); font-weight: 400; }
+  .capacity-track { height: 6px; border-radius: var(--radius-pill); background: var(--gray-100); overflow: hidden; }
+  .capacity-fill { height: 100%; border-radius: var(--radius-pill); background: var(--blue); transition: width 0.3s; width: 0%; }
+
+  /* ── ACTION BTN ── */
+  .action-btn {
+    width: 100%; padding: 16px; border-radius: var(--radius-pill); background: var(--blue);
+    color: #fff; font-size: 16px; font-weight: 600; border: none; cursor: pointer;
+    margin-top: 16px; transition: background 0.15s, transform 0.1s;
+    display: flex; align-items: center; justify-content: center; gap: 8px; max-width: 900px;
+  }
+  .action-btn:hover { background: var(--blue-hover); }
+  .action-btn:active { transform: scale(0.99); }
+  .action-btn:disabled { background: var(--gray-300); cursor: not-allowed; }
+
+  /* ── RESULT ── */
+  .result-box {
+    background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius-md);
+    padding: 14px; font-size: 13px; color: var(--gray-700); min-height: 80px;
+    line-height: 1.6; word-break: break-word;
+  }
+  .result-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .result-btn {
+    flex: 1; padding: 9px; border-radius: var(--radius-sm); border: 1px solid var(--gray-200);
+    background: #fff; font-size: 13px; font-weight: 500; cursor: pointer;
+    transition: background 0.12s; color: var(--gray-700);
+  }
+  .result-btn:hover { background: var(--gray-100); }
+
+  /* ── META GRID ── */
+  .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+  .meta-cell { background: var(--gray-50); border-radius: var(--radius-sm); padding: 12px 14px; }
+  .meta-cell-label { font-size: 11px; color: var(--gray-400); margin-bottom: 4px; }
+  .meta-cell-value { font-size: 15px; font-weight: 600; color: var(--gray-900); }
+
+  /* ── HISTORY TABLE ── */
+  .history-filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .filter-pill {
+    padding: 6px 14px; border-radius: var(--radius-pill); border: 1px solid var(--gray-200);
+    background: #fff; font-size: 13px; font-weight: 500; color: var(--gray-500); cursor: pointer; transition: all 0.12s;
+  }
+  .filter-pill.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .filter-pill:hover:not(.active) { background: var(--gray-100); }
+  .history-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .history-table th {
+    text-align: left; padding: 10px 14px; font-size: 11px; font-weight: 600;
+    color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--gray-200); background: var(--gray-50);
+  }
+  .history-table td { padding: 12px 14px; border-bottom: 1px solid var(--gray-100); color: var(--gray-700); vertical-align: middle; }
+  .history-table tr:last-child td { border-bottom: none; }
+  .history-table tr:hover td { background: var(--gray-50); }
+  .type-badge {
+    display: inline-block; padding: 3px 10px; border-radius: var(--radius-pill);
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+  }
+  .type-encode { background: #EFF6FF; color: #2563EB; }
+  .type-decode { background: #F0FDF4; color: #16A34A; }
+  .type-detect { background: #FFF7ED; color: #EA580C; }
+  .status-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+  }
+  .status-icon.ok { background: #DCFCE7; color: #16A34A; }
+  .status-icon.fail { background: #FEE2E2; color: #DC2626; }
+  .status-icon svg { width: 12px; height: 12px; }
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--gray-400); font-size: 13px; }
+
+  /* ── SUMMARY CARDS ── */
+  .summary-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+  .summary-card { border: 1px solid var(--gray-200); border-radius: var(--radius-lg); padding: 16px 18px; }
+  .summary-card-label { font-size: 11px; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .summary-card-value { font-size: 26px; font-weight: 700; color: var(--gray-900); }
+
+  /* ── SPINNER ── */
+  .spinner {
+    width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── STATUS BADGE ── */
+  .status-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 500; }
+  .status-badge.stego { background: #FEF2F2; color: #DC2626; }
+  .status-badge.clean { background: #F0FDF4; color: #16A34A; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; background: var(--gray-900); color: #fff;
+    padding: 12px 18px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500;
+    transform: translateY(80px); opacity: 0; transition: all 0.25s; z-index: 9999;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { background: #059669; }
+  .toast.error { background: #DC2626; }
+
+  .tab-section { display: none; }
+  .tab-section.active { display: block; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════ LOGIN OVERLAY ═══════════════════════ -->
+<div id="login-overlay">
+  <!-- Step 1: Enter code -->
+  <div class="login-card" id="login-step-enter">
+    <div class="login-icon">S</div>
+    <div class="login-title">Welcome back</div>
+    <div class="login-sub">Enter your hex access code to view your history and continue your session.</div>
+    <div class="login-input-wrap">
+      <input type="text" id="login-code-input" placeholder="e.g. 3f9a2c1b…" maxlength="32" oninput="this.value=this.value.replace(/[^0-9a-fA-F]/g,'')" />
+    </div>
+    <div class="login-err" id="login-err">Invalid code. Please try again.</div>
+    <button class="login-btn" onclick="doLogin()">Enter Tool</button>
+    <div class="login-new">No code yet? <a onclick="showRegister()">Generate one</a></div>
+  </div>
+
+  <!-- Step 2: Register — generate a new code -->
+  <div class="login-card" id="login-step-register" style="display:none;">
+    <div class="login-icon">+</div>
+    <div class="login-title">Your access code</div>
+    <div class="login-sub">Save this code somewhere safe. It's the only way to access your history. There's no recovery.</div>
+    <div class="hex-display" id="new-hex-display"></div>
+    <button class="login-copy-btn" onclick="copyNewCode()">Copy Code</button>
+    <button class="login-btn" onclick="confirmRegister()">I've saved it — Enter Tool</button>
+    <div class="login-new"><a onclick="showEnter()">← Back to login</a></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ APP SHELL ═══════════════════════ -->
+<div id="app" style="display:none;">
+
+<nav>
+  <a class="nav-brand" href="#">
+    <div class="nav-brand-icon">S</div>
+    Stenography Tool
+  </a>
+  <div class="nav-right">
+    <div class="nav-user">
+      <div class="avatar" id="nav-avatar">??</div>
+      <span id="nav-code-display" style="font-family:monospace; font-size:12px;"></span>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">Sign out</button>
+  </div>
+</nav>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('encode', this)">Encode</button>
+  <button class="tab-btn" onclick="switchTab('decode', this)">Decode</button>
+  <button class="tab-btn" onclick="switchTab('history', this)">History</button>
+</div>
+
+<main>
+
+<!-- ═══════════════════════ ENCODE ═══════════════════════ -->
+<div id="tab-encode" class="tab-section active">
+  <div class="page-title">Encode Secret Message</div>
+  <div class="two-col">
+    <div class="card" style="min-height:260px;">
+      <div class="dropzone" id="encode-dropzone">
+        <input type="file" id="encode-file" accept="image/*" onchange="handleFile('encode', this)" />
+        <svg class="dropzone-icon" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div class="dropzone-label">Drop carrier image here</div>
+        <div class="dropzone-hint">Support for PNG, JPG, BMP and TIFF files.</div>
+        <button class="browse-btn" onclick="event.stopPropagation(); document.getElementById('encode-file').click()">Browse files</button>
+      </div>
+      <img id="encode-preview" class="image-preview" alt="preview" />
+    </div>
+    <div style="display:flex; flex-direction:column; gap:16px;">
+      <div class="card">
+        <div class="card-title">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Secret Message
+        </div>
+        <div class="card-subtitle">The content that will be hidden inside pixels</div>
+        <div class="field-group">
+          <label class="field-label">Message Content</label>
+          <textarea id="encode-message" placeholder="Type the secret content here..." rows="4" oninput="updateCapacity()" autocomplete="off"></textarea>
+        </div>
+        <div class="field-group" style="margin-bottom:0">
+          <label class="field-label">Encryption Key</label>
+          <input type="password" id="encode-key" placeholder="Enter a secret key" autocomplete="new-password" />
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span> Encoding Options</div>
+        <div style="margin-top:4px;">
+          <label class="field-label">Encoding Algorithm</label>
+          <div class="algo-group">
+            <button class="algo-pill selected" onclick="selectAlgo(this)">LSB-1</button>
+            <button class="algo-pill" onclick="selectAlgo(this)">LSB-2</button>
+            <button class="algo-pill" onclick="selectAlgo(this)">LSB-4</button>
+            <button class="algo-pill" onclick="selectAlgo(this)">DCT</button>
+            <button class="algo-pill" onclick="selectAlgo(this)">DWT</button>
+          </div>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><strong>Random Pixel Order</strong><span>Scatter bits across the image for harder detection</span></div>
+          <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><strong>Preserve EXIF metadata</strong><span>Keep original camera and location data</span></div>
+          <label class="toggle"><input type="checkbox" /><span class="toggle-slider"></span></label>
+        </div>
+        <div class="capacity-row">
+          <div class="capacity-header">Carrier Capacity <span id="capacity-label">0% used</span></div>
+          <div class="capacity-track"><div class="capacity-fill" id="capacity-fill"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button class="action-btn" onclick="doEncode()">
+    <span id="encode-btn-text">Encode Message</span>
+    <div class="spinner" id="encode-spinner"></div>
+  </button>
+</div>
+
+<!-- ═══════════════════════ DECODE ═══════════════════════ -->
+<div id="tab-decode" class="tab-section">
+  <div class="page-title">Encoded Carrier</div>
+  <div class="page-subtitle">Upload the image containing the hidden message for extraction</div>
+  <div class="two-col">
+    <div class="card" style="min-height:260px;">
+      <div class="dropzone" id="decode-dropzone">
+        <input type="file" id="decode-file" accept="image/*" onchange="handleFile('decode', this)" />
+        <svg class="dropzone-icon" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div class="dropzone-label">Click to browse or drag and drop</div>
+        <div class="dropzone-hint">PNG, JPG, BMP and TIFF files.</div>
+      </div>
+      <img id="decode-preview" class="image-preview" alt="preview" />
+      <div class="field-group" style="margin-top:14px; margin-bottom:0;">
+        <label class="field-label">Decryption Key</label>
+        <input type="password" id="decode-key" placeholder="Enter the key used during encoding" autocomplete="new-password" />
+      </div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:16px;">
+      <div class="card">
+        <div class="card-title">Extracted Message</div>
+        <div class="result-box" id="decode-result">The extracted message will appear here after decoding.</div>
+        <div class="result-actions">
+          <button class="result-btn" onclick="copyDecodeResult()">Copy Text</button>
+          <button class="result-btn" onclick="downloadDecodeResult()">Download Result</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Metadata and Forensics</div>
+        <div class="meta-grid" style="margin-top:12px;">
+          <div class="meta-cell"><div class="meta-cell-label">Detected Method</div><div class="meta-cell-value" id="meta-method">—</div></div>
+          <div class="meta-cell"><div class="meta-cell-label">Confidence</div><div class="meta-cell-value" id="meta-confidence">—</div></div>
+          <div class="meta-cell"><div class="meta-cell-label">Payload Size</div><div class="meta-cell-value" id="meta-size">—</div></div>
+          <div class="meta-cell"><div class="meta-cell-label">EXIF Data</div><div class="meta-cell-value" id="meta-exif">—</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button class="action-btn" onclick="doDecode()">
+    <span id="decode-btn-text">Extract Hidden Message</span>
+    <div class="spinner" id="decode-spinner"></div>
+  </button>
+</div>
+
+<!-- ═══════════════════════ HISTORY ═══════════════════════ -->
+<div id="tab-history" class="tab-section">
+  <div class="page-title">Your History</div>
+  <div class="page-subtitle">All operations tied to your access code</div>
+
+  <div class="summary-row" id="summary-row">
+    <div class="summary-card"><div class="summary-card-label">Encodes</div><div class="summary-card-value" id="s-encodes">—</div></div>
+    <div class="summary-card"><div class="summary-card-label">Decodes</div><div class="summary-card-value" id="s-decodes">—</div></div>
+  </div>
+
+  <div class="history-filters">
+    <button class="filter-pill active" onclick="filterHistory('all', this)">All</button>
+    <button class="filter-pill" onclick="filterHistory('encode', this)">Encodes</button>
+    <button class="filter-pill" onclick="filterHistory('decode', this)">Decodes</button>
+  </div>
+
+  <div class="card" style="padding:0; overflow:hidden;">
+    <table class="history-table">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>File</th>
+          <th>Details</th>
+          <th>Status</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody id="history-tbody">
+        <tr><td colspan="5" class="empty-state">Loading history…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</main>
+</div><!-- /app -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'http://localhost:8000/api';
+let currentUserCode = null;
+let allHistoryRows = [];
+
+// ── AUTH ──────────────────────────────────────────────────────────
+function generateHex(len = 16) {
+  return Array.from(crypto.getRandomValues(new Uint8Array(len)))
+    .map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function showEnter() {
+  document.getElementById('login-step-enter').style.display = '';
+  document.getElementById('login-step-register').style.display = 'none';
+}
+function showRegister() {
+  const code = generateHex();
+  document.getElementById('new-hex-display').textContent = code;
+  document.getElementById('new-hex-display').dataset.code = code;
+  document.getElementById('login-step-enter').style.display = 'none';
+  document.getElementById('login-step-register').style.display = '';
+}
+function copyNewCode() {
+  const code = document.getElementById('new-hex-display').dataset.code;
+  navigator.clipboard.writeText(code).then(() => showToast('Code copied!', 'success'));
+}
+function confirmRegister() {
+  const code = document.getElementById('new-hex-display').dataset.code;
+  loginWith(code);
+}
+function doLogin() {
+  const code = document.getElementById('login-code-input').value.trim().toLowerCase();
+  if (code.length < 8) {
+    document.getElementById('login-err').style.display = 'block';
+    return;
+  }
+  document.getElementById('login-err').style.display = 'none';
+  loginWith(code);
+}
+function loginWith(code) {
+  currentUserCode = code;
+  localStorage.setItem('steg_user_code', code);
+  document.getElementById('login-overlay').style.display = 'none';
+  document.getElementById('app').style.display = '';
+  // Show first 4 + last 4 in nav
+  document.getElementById('nav-avatar').textContent = code.slice(0,2).toUpperCase();
+  document.getElementById('nav-code-display').textContent = code.slice(0,4) + '…' + code.slice(-4);
+}
+function doLogout() {
+  currentUserCode = null;
+  localStorage.removeItem('steg_user_code');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-overlay').style.display = 'flex';
+  document.getElementById('login-code-input').value = '';
+  showEnter();
+  // Clear every form field so the next account starts with a blank slate
+  document.getElementById('encode-message').value = '';
+  document.getElementById('encode-key').value = '';
+  document.getElementById('decode-key').value = '';
+  document.getElementById('encode-file').value = '';
+  document.getElementById('decode-file').value = '';
+  document.getElementById('encode-preview').classList.remove('visible');
+  document.getElementById('decode-preview').classList.remove('visible');
+  document.getElementById('decode-result').textContent = 'The extracted message will appear here after decoding.';
+  updateCapacity();
+}
+
+// Auto-login if code saved
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('steg_user_code');
+  if (saved) loginWith(saved);
+});
+
+// ── TABS ──────────────────────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'history') loadHistory();
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast', 3000);
+}
+
+// ── ALGO ──────────────────────────────────────────────────────────
+function selectAlgo(el) {
+  document.querySelectorAll('.algo-pill').forEach(p => p.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+// ── CAPACITY ──────────────────────────────────────────────────────
+function updateCapacity() {
+  const msg = document.getElementById('encode-message').value;
+  const pct = Math.min(100, Math.round((msg.length * 8 / 786432) * 100));
+  document.getElementById('capacity-fill').style.width = pct + '%';
+  document.getElementById('capacity-label').textContent = pct + '% used';
+}
+
+// ── FILE HANDLERS ─────────────────────────────────────────────────
+function handleFile(tab, input) {
+  if (!input.files[0]) return;
+  const url = URL.createObjectURL(input.files[0]);
+  const prev = document.getElementById(tab + '-preview');
+  prev.src = url; prev.classList.add('visible');
+  if (tab === 'encode') updateCapacity();
+}
+['encode','decode'].forEach(id => {
+  const el = document.getElementById(id + '-dropzone');
+  el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('dragover'); });
+  el.addEventListener('dragleave', () => el.classList.remove('dragover'));
+  el.addEventListener('drop', e => {
+    e.preventDefault(); el.classList.remove('dragover');
+    const file = e.dataTransfer.files[0]; if (!file) return;
+    const inp = document.getElementById(id + '-file');
+    const dt = new DataTransfer(); dt.items.add(file); inp.files = dt.files;
+    inp.dispatchEvent(new Event('change'));
+  });
+});
+
+// ── ENCODE ────────────────────────────────────────────────────────
+async function doEncode() {
+  const file = document.getElementById('encode-file').files[0];
+  const message = document.getElementById('encode-message').value.trim();
+  const key = document.getElementById('encode-key').value.trim();
+  if (!file) return showToast('Please select a carrier image.', 'error');
+  if (!message) return showToast('Please enter a message.', 'error');
+  if (!key) return showToast('Please enter an encryption key.', 'error');
+  setLoading('encode', true);
+  try {
+    const fd = new FormData();
+    fd.append('image', file); fd.append('message', message); fd.append('key', key);
+    fd.append('user_code', currentUserCode);
+    const res = await fetch(API + '/encode/', { method: 'POST', body: fd });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Encoding failed'); }
+    const blob = await res.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'stego_image.png'; a.click();
+    showToast('Message encoded! Image downloading.', 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+  finally { setLoading('encode', false); }
+}
+
+// ── DECODE ────────────────────────────────────────────────────────
+async function doDecode() {
+  const file = document.getElementById('decode-file').files[0];
+  const key = document.getElementById('decode-key').value.trim();
+  if (!file) return showToast('Please upload a stego image.', 'error');
+  if (!key) return showToast('Please enter the decryption key.', 'error');
+  setLoading('decode', true);
+  try {
+    const fd = new FormData();
+    fd.append('image', file); fd.append('key', key);
+    fd.append('user_code', currentUserCode);
+    const res = await fetch(API + '/decode/', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Decoding failed');
+    document.getElementById('decode-result').textContent = data.message;
+    document.getElementById('meta-method').textContent = 'LSB-1 (Red)';
+    document.getElementById('meta-size').textContent = data.message.length + ' Bytes';
+    document.getElementById('meta-exif').textContent = 'Stripped';
+    showToast('Message extracted successfully.', 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+  finally { setLoading('decode', false); }
+}
+function copyDecodeResult() {
+  navigator.clipboard.writeText(document.getElementById('decode-result').textContent)
+    .then(() => showToast('Copied!', 'success'));
+}
+function downloadDecodeResult() {
+  const blob = new Blob([document.getElementById('decode-result').textContent], { type: 'text/plain' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'extracted_message.txt'; a.click();
+}
+
+
+// ── HISTORY ───────────────────────────────────────────────────────
+async function loadHistory() {
+  const tbody = document.getElementById('history-tbody');
+  tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Loading…</td></tr>';
+  try {
+    const [encRes, decRes, sumRes] = await Promise.all([
+      fetch(API + '/logs/encode?user_code=' + currentUserCode),
+      fetch(API + '/logs/decode?user_code=' + currentUserCode),
+      fetch(API + '/logs/summary?user_code=' + currentUserCode),
+    ]);
+    const [encData, decData, sumData] = await Promise.all([
+      encRes.json(), decRes.json(), sumRes.json()
+    ]);
+
+    // Summary cards
+    document.getElementById('s-encodes').textContent = sumData.total_encodes ?? 0;
+    document.getElementById('s-decodes').textContent = sumData.total_decodes ?? 0;
+
+    // Merge all rows with a type tag
+    allHistoryRows = [
+      ...encData.map(r => ({ ...r, _type: 'encode' })),
+      ...decData.map(r => ({ ...r, _type: 'decode' })),
+    ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    renderHistory(allHistoryRows);
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Could not load history. Is the server running?</td></tr>';
+  }
+}
+
+function renderHistory(rows) {
+  const tbody = document.getElementById('history-tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No operations yet. Start encoding or decoding!</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(r => {
+    const typeLabel = { encode: 'Encode', decode: 'Decode' }[r._type];
+    const typeCls   = { encode: 'type-encode', decode: 'type-decode' }[r._type];
+    const details = r._type === 'encode'
+      ? `${r.message_length ?? '?'} chars`
+      : (r.message_length ? `${r.message_length} chars` : 'Failed');
+    const didSucceed = r.status === 'success';
+    const status = didSucceed
+      ? '<span class="status-icon ok" title="Completed"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>'
+      : '<span class="status-icon fail" title="Failed"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>';
+    const time = r.timestamp ? new Date(r.timestamp).toLocaleString() : '—';
+    return `<tr>
+      <td><span class="type-badge ${typeCls}">${typeLabel}</span></td>
+      <td style="font-family:monospace;font-size:12px;">${r.filename ?? '—'}</td>
+      <td>${details}</td>
+      <td>${status}</td>
+      <td style="color:var(--gray-400);font-size:12px;">${time}</td>
+    </tr>`;
+  }).join('');
+}
+
+function filterHistory(type, btn) {
+  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered = type === 'all' ? allHistoryRows : allHistoryRows.filter(r => r._type === type);
+  renderHistory(filtered);
+}
+
+// ── LOADING ───────────────────────────────────────────────────────
+function setLoading(tab, on) {
+  const btnText = document.getElementById(tab + '-btn-text');
+  const spinner = document.getElementById(tab + '-spinner');
+  btnText.closest('button').disabled = on;
+  spinner.style.display = on ? 'block' : 'none';
+  btnText.style.opacity = on ? '0.6' : '1';
+}
+</script>
+</body>
+</html>
