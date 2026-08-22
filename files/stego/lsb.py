@@ -18,8 +18,12 @@ def get_pixel_order(num_pixels: int, key: str, randomize: bool) -> list:
         random.shuffle(indices)
     return indices
 
-def encode_image(image_bytes: bytes, message: str, key: str, randomize: bool = False) -> bytes:
+def get_bits_per_channel(algorithm: str) -> int:
+    return {"LSB-1": 1, "LSB-2": 2, "LSB-4": 4}.get(algorithm, 1)
+
+def encode_image(image_bytes: bytes, message: str, key: str, randomize: bool = False, algorithm: str = "LSB-1") -> bytes:
     encrypted = xor_cipher(message, key) + DELIMITER
+    bpc = get_bits_per_channel(algorithm)
     bits = "".join(format(ord(c), "08b") for c in encrypted)
 
     img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
@@ -29,15 +33,15 @@ def encode_image(image_bytes: bytes, message: str, key: str, randomize: bool = F
         img.thumbnail((max_size, max_size), Image.LANCZOS)
 
     pixels = list(img.getdata())
+    capacity = len(pixels) * 3 * bpc
 
-    if len(bits) > len(pixels) * 3:
-        raise ValueError("Message is too long to fit inside this image.")
+    if len(bits) > capacity:
+        raise ValueError(f"Message is too long to fit inside this image with {algorithm}.")
 
     order = get_pixel_order(len(pixels), key, randomize)
-    pixel_map = {orig: i for i, orig in enumerate(order)}
-
     new_pixels = list(pixels)
     bit_index = 0
+    mask = 0xFF ^ ((1 << bpc) - 1)  # e.g. bpc=2 → 11111100
 
     for pos in order:
         if bit_index >= len(bits):
@@ -46,8 +50,9 @@ def encode_image(image_bytes: bytes, message: str, key: str, randomize: bool = F
         new_rgb = []
         for channel in (r, g, b):
             if bit_index < len(bits):
-                new_channel = (channel & 0xFE) | int(bits[bit_index])
-                bit_index += 1
+                chunk = bits[bit_index:bit_index + bpc].ljust(bpc, '0')
+                new_channel = (channel & mask) | int(chunk, 2)
+                bit_index += bpc
             else:
                 new_channel = channel
             new_rgb.append(new_channel)
@@ -59,7 +64,7 @@ def encode_image(image_bytes: bytes, message: str, key: str, randomize: bool = F
     return output.getvalue()
 
 
-def decode_image(image_bytes: bytes, key: str, randomize: bool = False) -> str:
+def decode_image(image_bytes: bytes, key: str, randomize: bool = False, algorithm: str = "LSB-1") -> str:
     img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
     max_size = 1024
@@ -68,15 +73,19 @@ def decode_image(image_bytes: bytes, key: str, randomize: bool = False) -> str:
 
     pixels = list(img.getdata())
     order = get_pixel_order(len(pixels), key, randomize)
+    bpc = get_bits_per_channel(algorithm)
+    mask = (1 << bpc) - 1  # e.g. bpc=2 → 00000011
 
     bits = ""
     chars = []
 
     for pos in order:
         for channel in pixels[pos]:
-            bits += str(channel & 1)
-            if len(bits) % 8 == 0:
-                byte = bits[-8:]
+            chunk = format(channel & mask, f'0{bpc}b')
+            bits += chunk
+            while len(bits) >= 8:
+                byte = bits[:8]
+                bits = bits[8:]
                 char = chr(int(byte, 2))
                 chars.append(char)
                 tail = "".join(chars[-len(DELIMITER):])

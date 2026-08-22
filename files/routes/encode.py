@@ -12,15 +12,17 @@ async def encode(
     message: str = Form(...),
     key: str = Form(...),
     user_code: str = Form(default="anonymous"),
-    randomize: bool = Form(default=False)
+    randomize: bool = Form(default=False),
+    algorithm: str = Form(default="LSB-1"),
 ):
     if not image.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Uploaded file must be an image.")
-
+    if algorithm not in ("LSB-1", "LSB-2", "LSB-4"):
+        raise HTTPException(status_code=400, detail="Invalid algorithm. Choose LSB-1, LSB-2, or LSB-4.")
     image_bytes = await image.read()
 
     try:
-        stego_bytes = encode_image(image_bytes, message, key,randomize)
+        stego_bytes = encode_image(image_bytes, message, key, randomize, algorithm, )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -30,7 +32,8 @@ async def encode(
         "message_length": len(message),
         "timestamp":      datetime.now(timezone.utc),
         "status":         "success",
-        "randomize":      randomize
+        "randomize":      randomize,
+        "algorithm":      algorithm,
     })
 
     return Response(

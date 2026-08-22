@@ -640,6 +640,8 @@ async function doEncode() {
       .closest('.tab-section')
       .querySelectorAll('input[type=checkbox]')[0]?.checked ?? false;
     fd.append('randomize', randomize);
+    const algorithm = document.querySelector('.algo-pill.selected')?.textContent.trim() ?? 'LSB-1';
+    fd.append('algorithm', algorithm);
     fd.append('user_code', currentUserCode);
     const res = await fetch(API + '/encode/', { method: 'POST', body: fd });
     if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Encoding failed'); }
@@ -661,6 +663,8 @@ async function doDecode() {
   try {
     const fd = new FormData();
     fd.append('image', file); fd.append('key', key);
+    const algorithm = document.querySelector('.algo-pill.selected')?.textContent.trim() ?? 'LSB-1';
+    fd.append('algorithm', algorithm);
     fd.append('user_code', currentUserCode);
     const res = await fetch(API + '/decode/', { method: 'POST', body: fd });
     const data = await res.json();
