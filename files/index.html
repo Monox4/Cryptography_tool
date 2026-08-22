@@ -640,6 +640,8 @@ async function doEncode() {
       .closest('.tab-section')
       .querySelectorAll('input[type=checkbox]')[0]?.checked ?? false;
     fd.append('randomize', randomize);
+    const preserve_exif = document.querySelector('#tab-encode input[type=checkbox]:nth-of-type(2)').checked;
+    fd.append('preserve_exif', preserve_exif);
     const algorithm = document.querySelector('.algo-pill.selected')?.textContent.trim() ?? 'LSB-1';
     fd.append('algorithm', algorithm);
     fd.append('user_code', currentUserCode);

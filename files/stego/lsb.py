@@ -21,12 +21,22 @@ def get_pixel_order(num_pixels: int, key: str, randomize: bool) -> list:
 def get_bits_per_channel(algorithm: str) -> int:
     return {"LSB-1": 1, "LSB-2": 2, "LSB-4": 4}.get(algorithm, 1)
 
-def encode_image(image_bytes: bytes, message: str, key: str, randomize: bool = False, algorithm: str = "LSB-1") -> bytes:
+def encode_image(image_bytes: bytes, message: str, key: str, randomize: bool = False, algorithm: str = "LSB-1", preserve_exif: bool = False) -> bytes:
     encrypted = xor_cipher(message, key) + DELIMITER
     bpc = get_bits_per_channel(algorithm)
     bits = "".join(format(ord(c), "08b") for c in encrypted)
 
-    img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    img = Image.open(io.BytesIO(image_bytes))
+
+    # Extract EXIF before conversion if preserving
+    exif_data = None
+    if preserve_exif:
+        try:
+            exif_data = img.info.get("exif", None)
+        except Exception:
+            exif_data = None
+
+    img = img.convert("RGB")
 
     max_size = 1024
     if img.width > max_size or img.height > max_size:
@@ -41,7 +51,7 @@ def encode_image(image_bytes: bytes, message: str, key: str, randomize: bool = F
     order = get_pixel_order(len(pixels), key, randomize)
     new_pixels = list(pixels)
     bit_index = 0
-    mask = 0xFF ^ ((1 << bpc) - 1)  # e.g. bpc=2 → 11111100
+    mask = 0xFF ^ ((1 << bpc) - 1)
 
     for pos in order:
         if bit_index >= len(bits):
@@ -60,7 +70,12 @@ def encode_image(image_bytes: bytes, message: str, key: str, randomize: bool = F
 
     img.putdata(new_pixels)
     output = io.BytesIO()
-    img.save(output, format="PNG")
+
+    if preserve_exif and exif_data:
+        img.save(output, format="PNG", exif=exif_data)
+    else:
+        img.save(output, format="PNG")
+
     return output.getvalue()
 
 
@@ -74,7 +89,7 @@ def decode_image(image_bytes: bytes, key: str, randomize: bool = False, algorith
     pixels = list(img.getdata())
     order = get_pixel_order(len(pixels), key, randomize)
     bpc = get_bits_per_channel(algorithm)
-    mask = (1 << bpc) - 1  # e.g. bpc=2 → 00000011
+    mask = (1 << bpc) - 1
 
     bits = ""
     chars = []
