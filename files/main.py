@@ -19,8 +19,5 @@ app.include_router(logs.router,   prefix="/api/logs",   tags=["Logs"])
 
 @app.get("/")
 def root():
-    return {"message": "Steganography Tool API is running."}
-
-@app.get("/ui")
-def serve_frontend():
     return FileResponse("index.html")
+
