@@ -45,6 +45,12 @@ def encode_image(image_bytes: bytes, message: str, key: str) -> bytes:
 
 def decode_image(image_bytes: bytes, key: str) -> str:
     img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+
+    # Resize to match what encode does — keeps LSBs consistent
+    max_size = 1024
+    if img.width > max_size or img.height > max_size:
+        img.thumbnail((max_size, max_size), Image.LANCZOS)
+
     pixels = list(img.getdata())
 
     bits = ""
@@ -58,6 +64,11 @@ def decode_image(image_bytes: bytes, key: str) -> str:
         if len(byte) < 8:
             break
         chars.append(chr(int(byte, 2)))
+        # Stop early once delimiter is found to save memory
+        if len(chars) >= 7:
+            tail = "".join(chars)
+            if DELIMITER in tail:
+                break
 
     full_text = "".join(chars)
 
