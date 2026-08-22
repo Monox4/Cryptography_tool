@@ -11,7 +11,8 @@ async def encode(
     image: UploadFile = File(...),
     message: str = Form(...),
     key: str = Form(...),
-    user_code: str = Form(default="anonymous")
+    user_code: str = Form(default="anonymous"),
+    randomize: bool = Form(default=False)
 ):
     if not image.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Uploaded file must be an image.")
@@ -19,7 +20,7 @@ async def encode(
     image_bytes = await image.read()
 
     try:
-        stego_bytes = encode_image(image_bytes, message, key)
+        stego_bytes = encode_image(image_bytes, message, key,randomize)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -28,7 +29,8 @@ async def encode(
         "filename":       image.filename,
         "message_length": len(message),
         "timestamp":      datetime.now(timezone.utc),
-        "status":         "success"
+        "status":         "success",
+        "randomize":      randomize
     })
 
     return Response(

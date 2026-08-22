@@ -9,7 +9,8 @@ router = APIRouter()
 async def decode(
     image: UploadFile = File(...),
     key: str = Form(...),
-    user_code: str = Form(default="anonymous")
+    user_code: str = Form(default="anonymous"),
+    randomize: bool = Form(default=False)
 ):
     if not image.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Uploaded file must be an image.")
@@ -17,7 +18,7 @@ async def decode(
     image_bytes = await image.read()
 
     try:
-        message = decode_image(image_bytes, key)
+        message = decode_image(image_bytes, key, randomize)
     except ValueError as e:
         decode_logs.insert_one({
             "user_code": user_code,
@@ -33,7 +34,8 @@ async def decode(
         "filename":       image.filename,
         "message_length": len(message),
         "timestamp":      datetime.now(timezone.utc),
-        "status":         "success"
+        "status":         "success",
+        "randomize":      randomize
     })
 
     return {"message": message}
