@@ -1,5 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from stego.lsb import decode_image
+from stego.dct import decode_dct
+from stego.dwt import decode_dwt
 from db.mongo import decode_logs
 from datetime import datetime, timezone
 
@@ -11,7 +13,7 @@ async def decode(
     key: str = Form(...),
     user_code: str = Form(default="anonymous"),
     randomize: bool = Form(default=False),
-    algorithm: str = Form(default="LSB-1"),
+    algorithm: str = Form(default="LSB-1")
 ):
     if not image.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Uploaded file must be an image.")
@@ -19,7 +21,12 @@ async def decode(
     image_bytes = await image.read()
 
     try:
-        message = decode_image(image_bytes, key, randomize, algorithm, )
+        if algorithm == "DCT":
+            message = decode_dct(image_bytes, key)
+        elif algorithm == "DWT":
+            message = decode_dwt(image_bytes, key)
+        else:
+            message = decode_image(image_bytes, key, randomize, algorithm)
     except ValueError as e:
         decode_logs.insert_one({
             "user_code": user_code,

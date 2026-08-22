@@ -1,6 +1,8 @@
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from fastapi.responses import Response
 from stego.lsb import encode_image
+from stego.dct import encode_dct
+from stego.dwt import encode_dwt
 from db.mongo import encode_logs
 from datetime import datetime, timezone
 
@@ -13,16 +15,22 @@ async def encode(
     key: str = Form(...),
     user_code: str = Form(default="anonymous"),
     randomize: bool = Form(default=False),
-    algorithm: str = Form(default="LSB-1"),
+    algorithm: str = Form(default="LSB-1")
 ):
     if not image.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Uploaded file must be an image.")
-    if algorithm not in ("LSB-1", "LSB-2", "LSB-4"):
-        raise HTTPException(status_code=400, detail="Invalid algorithm. Choose LSB-1, LSB-2, or LSB-4.")
+
     image_bytes = await image.read()
 
     try:
-        stego_bytes = encode_image(image_bytes, message, key, randomize, algorithm, )
+        if algorithm == "DCT":
+            stego_bytes = encode_dct(image_bytes, message, key)
+        elif algorithm == "DWT":
+            stego_bytes = encode_dwt(image_bytes, message, key)
+        else:
+            if algorithm not in ("LSB-1", "LSB-2", "LSB-4"):
+                raise ValueError("Invalid algorithm.")
+            stego_bytes = encode_image(image_bytes, message, key, randomize, algorithm)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -33,7 +41,7 @@ async def encode(
         "timestamp":      datetime.now(timezone.utc),
         "status":         "success",
         "randomize":      randomize,
-        "algorithm":      algorithm,
+        "algorithm":      algorithm
     })
 
     return Response(
