@@ -14,6 +14,9 @@ def encode_image(image_bytes: bytes, message: str, key: str) -> bytes:
     bits = "".join(format(ord(c), "08b") for c in encrypted)
 
     img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    max_size = 1024
+    if img.width > max_size or img.height > max_size:
+        img.thumbnail((max_size, max_size), Image.LANCZOS)
     pixels = list(img.getdata())
 
     if len(bits) > len(pixels) * 3:
