@@ -7,6 +7,5 @@ python-dotenv==1.0.1
 scipy
 numpy
 PyWavelets
-pydub==0.25.1
-pyaudioop
+soundfile
 opencv-python-headless
