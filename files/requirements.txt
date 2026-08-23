@@ -8,3 +8,4 @@ scipy
 numpy
 PyWavelets
 pydub
+opencv-python-headless

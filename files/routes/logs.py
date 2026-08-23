@@ -26,10 +26,12 @@ def get_decode_logs(user_code: str = Query(default=None), limit: int = 50):
 @router.get("/summary")
 def get_summary(user_code: str = Query(default=None)):
     query = {"user_code": user_code} if user_code else {}
-    total_encodes = encode_logs.count_documents(query)
-    total_decodes = decode_logs.count_documents(query)
+    image_query = {**query, "type": {"$exists": False}}
+    audio_query = {**query, "type": {"$regex": "^audio"}}
 
     return {
-        "total_encodes": total_encodes,
-        "total_decodes": total_decodes,
+        "total_encodes":       encode_logs.count_documents(image_query),
+        "total_decodes":       decode_logs.count_documents(image_query),
+        "total_audio_encodes": encode_logs.count_documents(audio_query),
+        "total_audio_decodes": decode_logs.count_documents(audio_query),
     }
