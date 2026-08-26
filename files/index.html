@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Stenography Tool</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<title>Steganography Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -12,15 +12,17 @@
     --gray-50: #F9FAFB; --gray-100: #F3F4F6; --gray-200: #E5E7EB;
     --gray-300: #D1D5DB; --gray-400: #9CA3AF; --gray-500: #6B7280;
     --gray-700: #374151; --gray-900: #111827;
+    --sidebar-w: 220px;
     --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-pill: 999px;
   }
   body { font-family: 'Inter', sans-serif; background: #fff; color: var(--gray-900); min-height: 100vh; }
+
   #login-overlay { position: fixed; inset: 0; background: #fff; display: flex; align-items: center; justify-content: center; z-index: 999; }
   .login-card { width: 380px; padding: 40px 36px; border: 1px solid var(--gray-200); border-radius: 20px; box-shadow: 0 4px 32px rgba(0,0,0,0.06); text-align: center; }
   .login-icon { width: 52px; height: 52px; background: var(--blue); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: #fff; font-size: 22px; font-weight: 700; }
   .login-title { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
   .login-sub { font-size: 13px; color: var(--gray-500); margin-bottom: 28px; line-height: 1.5; }
-  .login-input-wrap { position: relative; margin-bottom: 12px; }
+  .login-input-wrap { margin-bottom: 12px; }
   .login-input-wrap input { width: 100%; padding: 12px 14px; font-size: 14px; font-family: 'Inter', sans-serif; border: 1.5px solid var(--gray-200); border-radius: var(--radius-md); background: var(--gray-50); outline: none; letter-spacing: 0.08em; transition: border-color 0.15s; }
   .login-input-wrap input:focus { border-color: var(--blue); background: #fff; }
   .login-input-wrap input::placeholder { letter-spacing: 0; color: var(--gray-400); }
@@ -29,126 +31,151 @@
   .login-err { font-size: 12px; color: #DC2626; margin-top: -6px; margin-bottom: 10px; display: none; }
   .login-new { font-size: 12px; color: var(--gray-500); }
   .login-new a { color: var(--blue); cursor: pointer; text-decoration: none; font-weight: 500; }
-  .login-new a:hover { text-decoration: underline; }
   .hex-display { background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 14px; font-family: monospace; font-size: 18px; font-weight: 700; letter-spacing: 0.15em; color: var(--blue); margin: 16px 0; word-break: break-all; }
   .login-copy-btn { padding: 8px 20px; border-radius: var(--radius-pill); border: 1.5px solid var(--blue); background: #fff; color: var(--blue); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.12s; margin-bottom: 16px; }
   .login-copy-btn:hover { background: var(--blue-light); }
-  nav { display: flex; align-items: center; padding: 0 24px; height: 52px; border-bottom: 1px solid var(--gray-200); }
-  .nav-brand { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; color: var(--gray-900); text-decoration: none; }
-  .nav-brand-icon { width: 28px; height: 28px; background: var(--blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 700; }
-  .nav-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
-  .nav-user { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--gray-500); }
-  .nav-user .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--blue-light); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--blue); font-family: monospace; }
-  .logout-btn { padding: 6px 14px; border-radius: var(--radius-pill); border: 1px solid var(--gray-200); background: #fff; font-size: 12px; font-weight: 500; color: var(--gray-500); cursor: pointer; transition: all 0.12s; }
-  .logout-btn:hover { background: var(--gray-100); color: var(--gray-700); }
-  .tab-bar { display: flex; gap: 8px; padding: 12px 24px; border-bottom: 1px solid var(--gray-200); flex-wrap: wrap; }
-  .tab-btn { padding: 7px 16px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 500; cursor: pointer; border: none; background: var(--gray-100); color: var(--gray-500); transition: all 0.15s; }
-  .tab-btn.active { background: var(--blue); color: #fff; }
-  .tab-btn:hover:not(.active) { background: var(--gray-200); color: var(--gray-700); }
-  main { padding: 32px 24px; max-width: 900px; }
-  .page-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
-  .page-subtitle { font-size: 13px; color: var(--gray-500); margin-bottom: 24px; }
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+
+  #app { display: none; min-height: 100vh; }
+
+  .topbar { position: fixed; top: 0; left: 0; right: 0; height: 52px; background: #fff; border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; padding: 0 20px; gap: 16px; z-index: 100; }
+  .topbar-brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; color: var(--gray-900); width: var(--sidebar-w); flex-shrink: 0; }
+  .topbar-icon { width: 28px; height: 28px; background: var(--blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 700; }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .nav-user { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--gray-500); }
+  .nav-user .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--blue-light); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--blue); font-family: monospace; }
+  .logout-btn { padding: 5px 12px; border-radius: var(--radius-pill); border: 1px solid var(--gray-200); background: #fff; font-size: 12px; font-weight: 500; color: var(--gray-500); cursor: pointer; transition: all 0.12s; }
+  .logout-btn:hover { background: var(--gray-100); }
+
+  .sidebar { position: fixed; top: 52px; left: 0; bottom: 0; width: var(--sidebar-w); background: var(--gray-50); border-right: 1px solid var(--gray-200); overflow-y: auto; padding: 12px 8px; z-index: 90; }
+  .sidebar-section { margin-bottom: 20px; }
+  .sidebar-label { font-size: 10px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.08em; padding: 0 8px; margin-bottom: 4px; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500; color: var(--gray-700); cursor: pointer; transition: all 0.12s; border: none; background: none; width: 100%; text-align: left; }
+  .sidebar-item:hover { background: var(--gray-200); }
+  .sidebar-item.active { background: var(--blue-light); color: var(--blue); font-weight: 600; }
+  .sidebar-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  .main-content { margin-left: var(--sidebar-w); margin-top: 52px; padding: 28px 32px; max-width: 960px; }
+  .section-title { font-size: 20px; font-weight: 700; margin-bottom: 2px; }
+  .section-subtitle { font-size: 13px; color: var(--gray-500); margin-bottom: 20px; }
+
+  .inner-tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 1px solid var(--gray-200); }
+  .inner-tab { padding: 8px 18px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; background: none; color: var(--gray-500); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; }
+  .inner-tab:hover { color: var(--gray-900); }
+  .inner-tab.active { color: var(--blue); border-bottom-color: var(--blue); font-weight: 600; }
+  .inner-pane { display: none; }
+  .inner-pane.active { display: block; }
+
+  .page-section { display: none; }
+  .page-section.active { display: block; }
+
   .card { border: 1px solid var(--gray-200); border-radius: var(--radius-lg); padding: 20px; background: #fff; }
   .card-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
-  .card-subtitle { font-size: 12px; color: var(--gray-400); margin-bottom: 16px; }
+  .card-subtitle { font-size: 12px; color: var(--gray-400); margin-bottom: 14px; }
   .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); display: inline-block; }
-  .dropzone { border: 1.5px dashed var(--gray-300); border-radius: var(--radius-md); padding: 36px 20px; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; position: relative; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+  .col-stack { display: flex; flex-direction: column; gap: 16px; }
+
+  .dropzone { border: 1.5px dashed var(--gray-300); border-radius: var(--radius-md); padding: 32px 20px; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; position: relative; }
   .dropzone:hover, .dropzone.dragover { border-color: var(--blue); background: var(--blue-light); }
   .dropzone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-  .dropzone-icon { width: 36px; height: 36px; margin: 0 auto 10px; color: var(--blue); }
+  .dropzone-icon { width: 34px; height: 34px; margin: 0 auto 10px; color: var(--blue); }
   .dropzone-label { font-size: 14px; font-weight: 500; color: var(--gray-700); margin-bottom: 4px; }
-  .dropzone-hint { font-size: 12px; color: var(--gray-400); margin-bottom: 14px; }
-  .browse-btn { padding: 7px 18px; border-radius: var(--radius-pill); border: 1px solid var(--gray-300); background: #fff; font-size: 13px; font-weight: 500; color: var(--gray-700); cursor: pointer; transition: background 0.15s; }
+  .dropzone-hint { font-size: 12px; color: var(--gray-400); margin-bottom: 12px; }
+  .browse-btn { padding: 6px 16px; border-radius: var(--radius-pill); border: 1px solid var(--gray-300); background: #fff; font-size: 13px; font-weight: 500; color: var(--gray-700); cursor: pointer; }
   .browse-btn:hover { background: var(--gray-100); }
-  .image-preview { width: 120px; height: 90px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--gray-200); margin-top: 12px; display: none; }
-  .image-preview.visible { display: block; margin: 12px auto 0; }
-  .audio-preview { width: 100%; margin-top: 12px; display: none; border-radius: var(--radius-sm); }
+  .image-preview { width: 120px; height: 90px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--gray-200); margin: 10px auto 0; display: none; }
+  .image-preview.visible { display: block; }
+  .audio-preview { width: 100%; margin-top: 10px; display: none; border-radius: var(--radius-sm); }
   .audio-preview.visible { display: block; }
-  .video-preview { width: 100%; margin-top: 12px; display: none; border-radius: var(--radius-sm); max-height: 180px; }
+  .video-preview { width: 100%; margin-top: 10px; display: none; border-radius: var(--radius-sm); max-height: 160px; }
   .video-preview.visible { display: block; }
-  .file-name { font-size: 12px; color: var(--gray-500); margin-top: 6px; text-align: center; display: none; font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-name { font-size: 11px; color: var(--gray-400); margin-top: 6px; text-align: center; display: none; font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .file-name.visible { display: block; }
-  .mode-row { display: flex; gap: 8px; margin-bottom: 16px; }
-  .mode-pill { flex: 1; padding: 9px; border-radius: var(--radius-sm); border: 1.5px solid var(--gray-200); background: #fff; font-size: 13px; font-weight: 500; color: var(--gray-500); cursor: pointer; transition: all 0.12s; text-align: center; }
+
+  .mode-row { display: flex; gap: 8px; margin-bottom: 14px; }
+  .mode-pill { flex: 1; padding: 8px; border-radius: var(--radius-sm); border: 1.5px solid var(--gray-200); background: #fff; font-size: 13px; font-weight: 500; color: var(--gray-500); cursor: pointer; transition: all 0.12s; text-align: center; }
   .mode-pill.active { border-color: var(--blue); background: var(--blue-light); color: var(--blue); }
+
   label.field-label { display: block; font-size: 13px; font-weight: 500; color: var(--gray-700); margin-bottom: 6px; }
-  textarea { width: 100%; border: 1px solid var(--gray-200); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 13px; font-family: 'Inter', sans-serif; color: var(--gray-900); resize: vertical; background: var(--gray-50); outline: none; transition: border-color 0.15s; min-height: 100px; }
+  textarea { width: 100%; border: 1px solid var(--gray-200); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 13px; font-family: 'Inter', sans-serif; color: var(--gray-900); resize: vertical; background: var(--gray-50); outline: none; transition: border-color 0.15s; min-height: 90px; }
   textarea:focus { border-color: var(--blue); background: #fff; }
   textarea::placeholder { color: var(--gray-400); }
   input[type=text], input[type=password], input[type=number] { width: 100%; border: 1px solid var(--gray-200); border-radius: var(--radius-sm); padding: 8px 12px; font-size: 13px; font-family: 'Inter', sans-serif; color: var(--gray-900); background: var(--gray-50); outline: none; transition: border-color 0.15s; }
   input[type=text]:focus, input[type=password]:focus, input[type=number]:focus { border-color: var(--blue); background: #fff; }
   input::placeholder { color: var(--gray-400); }
   .field-group { margin-bottom: 14px; }
-  .algo-group { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  select.cipher-select { width: 100%; border: 1px solid var(--gray-200); border-radius: var(--radius-sm); padding: 9px 12px; font-size: 13px; font-family: 'Inter', sans-serif; color: var(--gray-900); background: var(--gray-50); outline: none; cursor: pointer; }
+  select.cipher-select:focus { border-color: var(--blue); background: #fff; }
+  .cipher-extra { margin-top: 12px; display: none; }
+  .cipher-extra.visible { display: block; }
+
+  .algo-group { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
   .algo-pill { padding: 5px 12px; border-radius: var(--radius-pill); border: 1px solid var(--gray-200); background: #fff; font-size: 12px; font-weight: 500; color: var(--gray-700); cursor: pointer; transition: all 0.12s; }
   .algo-pill.selected { background: var(--gray-900); color: #fff; border-color: var(--gray-900); }
-  .algo-pill:hover:not(.selected) { background: var(--gray-100); }
-  .toggle-row { display: flex; align-items: flex-start; justify-content: space-between; padding: 14px 0; border-top: 1px solid var(--gray-100); }
-  .toggle-info { flex: 1; padding-right: 12px; }
+
+  .toggle-row { display: flex; align-items: flex-start; justify-content: space-between; padding: 12px 0; border-top: 1px solid var(--gray-100); }
   .toggle-info strong { font-size: 13px; font-weight: 500; display: block; margin-bottom: 2px; }
   .toggle-info span { font-size: 11px; color: var(--gray-400); }
-  .toggle { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+  .toggle { position: relative; width: 38px; height: 21px; flex-shrink: 0; }
   .toggle input { opacity: 0; width: 0; height: 0; }
   .toggle-slider { position: absolute; inset: 0; background: var(--gray-300); border-radius: var(--radius-pill); cursor: pointer; transition: background 0.2s; }
-  .toggle-slider::before { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
+  .toggle-slider::before { content: ''; position: absolute; width: 15px; height: 15px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
   .toggle input:checked + .toggle-slider { background: var(--blue); }
-  .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
-  .capacity-row { padding-top: 14px; border-top: 1px solid var(--gray-100); }
-  .capacity-header { display: flex; justify-content: space-between; font-size: 12px; font-weight: 500; margin-bottom: 8px; color: var(--gray-700); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(17px); }
+
+  .capacity-row { padding-top: 12px; border-top: 1px solid var(--gray-100); }
+  .capacity-header { display: flex; justify-content: space-between; font-size: 12px; font-weight: 500; margin-bottom: 6px; color: var(--gray-700); }
   .capacity-header span { color: var(--gray-400); font-weight: 400; }
-  .capacity-track { height: 6px; border-radius: var(--radius-pill); background: var(--gray-100); overflow: hidden; }
+  .capacity-track { height: 5px; border-radius: var(--radius-pill); background: var(--gray-100); overflow: hidden; }
   .capacity-fill { height: 100%; border-radius: var(--radius-pill); background: var(--blue); transition: width 0.3s; width: 0%; }
-  .action-btn { width: 100%; padding: 16px; border-radius: var(--radius-pill); background: var(--blue); color: #fff; font-size: 16px; font-weight: 600; border: none; cursor: pointer; margin-top: 16px; transition: background 0.15s, transform 0.1s; display: flex; align-items: center; justify-content: center; gap: 8px; max-width: 900px; }
+
+  .action-btn { width: 100%; padding: 14px; border-radius: var(--radius-pill); background: var(--blue); color: #fff; font-size: 15px; font-weight: 600; border: none; cursor: pointer; margin-top: 16px; transition: background 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
   .action-btn:hover { background: var(--blue-hover); }
-  .action-btn:active { transform: scale(0.99); }
   .action-btn:disabled { background: var(--gray-300); cursor: not-allowed; }
+
   .result-box { background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 14px; font-size: 13px; color: var(--gray-700); min-height: 80px; line-height: 1.6; word-break: break-word; white-space: pre-wrap; }
-  .result-actions { display: flex; gap: 8px; margin-top: 12px; }
-  .result-btn { flex: 1; padding: 9px; border-radius: var(--radius-sm); border: 1px solid var(--gray-200); background: #fff; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.12s; color: var(--gray-700); text-align: center; text-decoration: none; display: block; }
+  .result-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .result-btn { flex: 1; padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--gray-200); background: #fff; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--gray-700); text-align: center; text-decoration: none; display: block; transition: background 0.12s; }
   .result-btn:hover { background: var(--gray-100); }
+
   .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
-  .meta-cell { background: var(--gray-50); border-radius: var(--radius-sm); padding: 12px 14px; }
+  .meta-cell { background: var(--gray-50); border-radius: var(--radius-sm); padding: 10px 12px; }
   .meta-cell-label { font-size: 11px; color: var(--gray-400); margin-bottom: 4px; }
-  .meta-cell-value { font-size: 15px; font-weight: 600; color: var(--gray-900); }
-  .history-filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-  .filter-pill { padding: 6px 14px; border-radius: var(--radius-pill); border: 1px solid var(--gray-200); background: #fff; font-size: 13px; font-weight: 500; color: var(--gray-500); cursor: pointer; transition: all 0.12s; }
+  .meta-cell-value { font-size: 14px; font-weight: 600; color: var(--gray-900); }
+
+  .size-warning { font-size: 11px; color: #EA580C; margin-top: 6px; display: none; }
+  .size-warning.visible { display: block; }
+
+  .summary-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  .summary-card { border: 1px solid var(--gray-200); border-radius: var(--radius-lg); padding: 14px 16px; }
+  .summary-card-label { font-size: 11px; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .summary-card-value { font-size: 24px; font-weight: 700; }
+  .history-filters { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .filter-pill { padding: 5px 14px; border-radius: var(--radius-pill); border: 1px solid var(--gray-200); background: #fff; font-size: 13px; font-weight: 500; color: var(--gray-500); cursor: pointer; transition: all 0.12s; }
   .filter-pill.active { background: var(--blue); color: #fff; border-color: var(--blue); }
-  .filter-pill:hover:not(.active) { background: var(--gray-100); }
   .history-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .history-table th { text-align: left; padding: 10px 14px; font-size: 11px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--gray-200); background: var(--gray-50); }
-  .history-table td { padding: 12px 14px; border-bottom: 1px solid var(--gray-100); color: var(--gray-700); vertical-align: middle; }
+  .history-table th { text-align: left; padding: 9px 12px; font-size: 11px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--gray-200); background: var(--gray-50); }
+  .history-table td { padding: 11px 12px; border-bottom: 1px solid var(--gray-100); color: var(--gray-700); vertical-align: middle; }
   .history-table tr:last-child td { border-bottom: none; }
   .history-table tr:hover td { background: var(--gray-50); }
-  .type-badge { display: inline-block; padding: 3px 10px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 600; text-transform: uppercase; }
+  .type-badge { display: inline-block; padding: 2px 8px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 600; text-transform: uppercase; }
   .type-encode { background: #EFF6FF; color: #2563EB; }
   .type-decode { background: #F0FDF4; color: #16A34A; }
   .type-audio  { background: #FFF7ED; color: #EA580C; }
   .type-video  { background: #F5F3FF; color: #7C3AED; }
   .type-cipher { background: #FFF1F2; color: #E11D48; }
-  .status-icon { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; }
+  .status-icon { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; }
   .status-icon.ok   { background: #DCFCE7; color: #16A34A; }
   .status-icon.fail { background: #FEE2E2; color: #DC2626; }
-  .status-icon svg  { width: 12px; height: 12px; }
-  .empty-state { text-align: center; padding: 40px 20px; color: var(--gray-400); font-size: 13px; }
-  .summary-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
-  .summary-card { border: 1px solid var(--gray-200); border-radius: var(--radius-lg); padding: 16px 18px; }
-  .summary-card-label { font-size: 11px; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
-  .summary-card-value { font-size: 26px; font-weight: 700; color: var(--gray-900); }
-  .size-warning { font-size: 11px; color: #EA580C; margin-top: 6px; display: none; }
-  .size-warning.visible { display: block; }
-  .cipher-select { width: 100%; border: 1px solid var(--gray-200); border-radius: var(--radius-sm); padding: 9px 12px; font-size: 13px; font-family: 'Inter', sans-serif; color: var(--gray-900); background: var(--gray-50); outline: none; cursor: pointer; transition: border-color 0.15s; }
-  .cipher-select:focus { border-color: var(--blue); background: #fff; }
-  .cipher-extra { margin-top: 12px; display: none; }
-  .cipher-extra.visible { display: block; }
-  .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; display: none; }
+  .status-icon svg  { width: 11px; height: 11px; }
+  .empty-state { text-align: center; padding: 36px 20px; color: var(--gray-400); font-size: 13px; }
+
+  .spinner { width: 17px; height: 17px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; display: none; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--gray-900); color: #fff; padding: 12px 18px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500; transform: translateY(80px); opacity: 0; transition: all 0.25s; z-index: 9999; }
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--gray-900); color: #fff; padding: 11px 16px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500; transform: translateY(80px); opacity: 0; transition: all 0.25s; z-index: 9999; }
   .toast.show { transform: translateY(0); opacity: 1; }
   .toast.success { background: #059669; }
   .toast.error   { background: #DC2626; }
-  .tab-section { display: none; }
-  .tab-section.active { display: block; }
 </style>
 </head>
 <body>
@@ -157,11 +184,9 @@
 <div id="login-overlay">
   <div class="login-card" id="login-step-enter">
     <div class="login-icon">S</div>
-    <div class="login-title">Welcome back</div>
-    <div class="login-sub">Enter your hex access code to view your history and continue your session.</div>
-    <div class="login-input-wrap">
-      <input type="text" id="login-code-input" placeholder="e.g. 3f9a2c1b…" maxlength="32" oninput="this.value=this.value.replace(/[^0-9a-fA-F]/g,'')" />
-    </div>
+    <div class="login-title">Steganography Tool</div>
+    <div class="login-sub">Enter your hex access code to continue your session and view history.</div>
+    <div class="login-input-wrap"><input type="text" id="login-code-input" placeholder="e.g. 3f9a2c1b…" maxlength="32" oninput="this.value=this.value.replace(/[^0-9a-fA-F]/g,'')" /></div>
     <div class="login-err" id="login-err">Invalid code. Please try again.</div>
     <button class="login-btn" onclick="doLogin()">Enter Tool</button>
     <div class="login-new">No code yet? <a onclick="showRegister()">Generate one</a></div>
@@ -169,7 +194,7 @@
   <div class="login-card" id="login-step-register" style="display:none;">
     <div class="login-icon">+</div>
     <div class="login-title">Your access code</div>
-    <div class="login-sub">Save this code somewhere safe. It's the only way to access your history. There's no recovery.</div>
+    <div class="login-sub">Save this somewhere safe. It's the only way to access your history — there's no recovery.</div>
     <div class="hex-display" id="new-hex-display"></div>
     <button class="login-copy-btn" onclick="copyNewCode()">Copy Code</button>
     <button class="login-btn" onclick="confirmRegister()">I've saved it — Enter Tool</button>
@@ -178,404 +203,400 @@
 </div>
 
 <!-- APP -->
-<div id="app" style="display:none;">
-<nav>
-  <a class="nav-brand" href="#">
-    <div class="nav-brand-icon">S</div>
-    Stenography Tool
-  </a>
-  <div class="nav-right">
+<div id="app">
+
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-icon">S</div>
+    Steganography Tool
+  </div>
+  <div class="topbar-right">
     <div class="nav-user">
       <div class="avatar" id="nav-avatar">??</div>
-      <span id="nav-code-display" style="font-family:monospace; font-size:12px;"></span>
+      <span id="nav-code-display" style="font-family:monospace;"></span>
     </div>
     <button class="logout-btn" onclick="doLogout()">Sign out</button>
   </div>
-</nav>
-
-<div class="tab-bar">
-  <button class="tab-btn active" onclick="switchTab('encode',this)">Image Encode</button>
-  <button class="tab-btn" onclick="switchTab('decode',this)">Image Decode</button>
-  <button class="tab-btn" onclick="switchTab('audio-encode',this)">Audio Encode</button>
-  <button class="tab-btn" onclick="switchTab('audio-decode',this)">Audio Decode</button>
-  <button class="tab-btn" onclick="switchTab('video-encode',this)">Video Encode</button>
-  <button class="tab-btn" onclick="switchTab('video-decode',this)">Video Decode</button>
-  <button class="tab-btn" onclick="switchTab('cipher',this)">Text Cipher</button>
-  <button class="tab-btn" onclick="switchTab('text-stego',this)">Text Stego</button>
-  <button class="tab-btn" onclick="switchTab('history',this)">History</button>
 </div>
 
-<main>
-
-<!-- ══ IMAGE ENCODE ══ -->
-<div id="tab-encode" class="tab-section active">
-  <div class="page-title">Encode Secret Message</div>
-  <div class="two-col">
-    <div class="card" style="min-height:260px;">
-      <div class="dropzone" id="encode-dropzone">
-        <input type="file" id="encode-file" accept="image/*" onchange="handleImageFile('encode',this)" />
-        <svg class="dropzone-icon" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        <div class="dropzone-label">Drop carrier image here</div>
-        <div class="dropzone-hint">PNG, JPG, BMP, TIFF files.</div>
-        <button class="browse-btn" onclick="event.stopPropagation();document.getElementById('encode-file').click()">Browse files</button>
-      </div>
-      <img id="encode-preview" class="image-preview" alt="preview" />
-    </div>
-    <div style="display:flex;flex-direction:column;gap:16px;">
-      <div class="card">
-        <div class="card-title"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Secret Message</div>
-        <div class="card-subtitle">Hidden inside image pixels</div>
-        <div class="field-group"><label class="field-label">Message Content</label><textarea id="encode-message" placeholder="Type the secret content here..." rows="4" oninput="updateCapacity()" autocomplete="off"></textarea></div>
-        <div class="field-group" style="margin-bottom:0"><label class="field-label">Encryption Key</label><input type="password" id="encode-key" placeholder="Enter a secret key" autocomplete="new-password" /></div>
-      </div>
-      <div class="card">
-        <div class="card-title"><span class="dot"></span> Encoding Options</div>
-        <div style="margin-top:4px;"><label class="field-label">Algorithm</label>
-          <div class="algo-group" id="encode-algo-group">
-            <button class="algo-pill selected" onclick="selectAlgo(this,'encode-algo-group')">LSB-1</button>
-            <button class="algo-pill" onclick="selectAlgo(this,'encode-algo-group')">LSB-2</button>
-            <button class="algo-pill" onclick="selectAlgo(this,'encode-algo-group')">LSB-4</button>
-            <button class="algo-pill" onclick="selectAlgo(this,'encode-algo-group')">DCT</button>
-            <button class="algo-pill" onclick="selectAlgo(this,'encode-algo-group')">DWT</button>
-          </div>
-        </div>
-        <div class="toggle-row"><div class="toggle-info"><strong>Random Pixel Order</strong><span>Scatter bits for harder detection</span></div><label class="toggle"><input type="checkbox" id="encode-randomize" checked /><span class="toggle-slider"></span></label></div>
-        <div class="toggle-row"><div class="toggle-info"><strong>Preserve EXIF metadata</strong><span>Keep original camera data</span></div><label class="toggle"><input type="checkbox" id="encode-exif" /><span class="toggle-slider"></span></label></div>
-        <div class="capacity-row"><div class="capacity-header">Carrier Capacity <span id="capacity-label">0% used</span></div><div class="capacity-track"><div class="capacity-fill" id="capacity-fill"></div></div></div>
-      </div>
-    </div>
+<div class="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-label">Steganography</div>
+    <button class="sidebar-item active" onclick="showPage('image',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      Image
+    </button>
+    <button class="sidebar-item" onclick="showPage('audio',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      Audio
+    </button>
+    <button class="sidebar-item" onclick="showPage('video',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+      Video
+    </button>
+    <button class="sidebar-item" onclick="showPage('text-stego',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Text Stego
+    </button>
   </div>
-  <button class="action-btn" onclick="doEncode()"><span id="encode-btn-text">Encode Message</span><div class="spinner" id="encode-spinner"></div></button>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Cryptography</div>
+    <button class="sidebar-item" onclick="showPage('cipher',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Text Cipher
+    </button>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Account</div>
+    <button class="sidebar-item" onclick="showPage('history',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      History
+    </button>
+  </div>
 </div>
 
-<!-- ══ IMAGE DECODE ══ -->
-<div id="tab-decode" class="tab-section">
-  <div class="page-title">Encoded Carrier</div>
-  <div class="page-subtitle">Upload the image containing the hidden message for extraction</div>
-  <div class="two-col">
-    <div class="card" style="min-height:260px;">
-      <div class="dropzone" id="decode-dropzone">
-        <input type="file" id="decode-file" accept="image/*" onchange="handleImageFile('decode',this)" />
-        <svg class="dropzone-icon" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        <div class="dropzone-label">Click to browse or drag and drop</div>
-        <div class="dropzone-hint">PNG, JPG, BMP, TIFF files.</div>
-      </div>
-      <img id="decode-preview" class="image-preview" alt="preview" />
-      <div class="field-group" style="margin-top:14px;margin-bottom:0;"><label class="field-label">Decryption Key</label><input type="password" id="decode-key" placeholder="Enter the key used during encoding" autocomplete="new-password" /></div>
-      <div class="field-group" style="margin-top:12px;margin-bottom:0;"><label class="field-label">Algorithm used during encoding</label>
-        <div class="algo-group" id="decode-algo-group">
-          <button class="algo-pill selected" onclick="selectAlgo(this,'decode-algo-group')">LSB-1</button>
-          <button class="algo-pill" onclick="selectAlgo(this,'decode-algo-group')">LSB-2</button>
-          <button class="algo-pill" onclick="selectAlgo(this,'decode-algo-group')">LSB-4</button>
-          <button class="algo-pill" onclick="selectAlgo(this,'decode-algo-group')">DCT</button>
-          <button class="algo-pill" onclick="selectAlgo(this,'decode-algo-group')">DWT</button>
-        </div>
-      </div>
-      <div class="toggle-row" style="margin-top:8px;"><div class="toggle-info"><strong>Random Pixel Order</strong><span>Was this enabled during encoding?</span></div><label class="toggle"><input type="checkbox" id="decode-randomize" checked /><span class="toggle-slider"></span></label></div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:16px;">
-      <div class="card">
-        <div class="card-title">Extracted Message</div>
-        <div class="result-box" id="decode-result">The extracted message will appear here after decoding.</div>
-        <div class="result-actions"><button class="result-btn" onclick="copyResult('decode-result')">Copy Text</button><button class="result-btn" onclick="downloadText('decode-result','extracted_message.txt')">Download</button></div>
-      </div>
-      <div class="card">
-        <div class="card-title">Metadata</div>
-        <div class="meta-grid" style="margin-top:12px;">
-          <div class="meta-cell"><div class="meta-cell-label">Algorithm</div><div class="meta-cell-value" id="meta-method">—</div></div>
-          <div class="meta-cell"><div class="meta-cell-label">Payload Size</div><div class="meta-cell-value" id="meta-size">—</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <button class="action-btn" onclick="doDecode()"><span id="decode-btn-text">Extract Hidden Message</span><div class="spinner" id="decode-spinner"></div></button>
-</div>
+<div class="main-content">
 
-<!-- ══ AUDIO ENCODE ══ -->
-<div id="tab-audio-encode" class="tab-section">
-  <div class="page-title">Audio Encode</div>
-  <div class="page-subtitle">Hide a secret message or audio file inside a carrier audio file</div>
-  <div class="mode-row">
-    <button class="mode-pill active" id="audio-enc-mode-text" onclick="setMode('audio-enc','text')">Hide Text</button>
-    <button class="mode-pill" id="audio-enc-mode-audio" onclick="setMode('audio-enc','audio')">Hide Audio</button>
+<!-- IMAGE -->
+<div id="page-image" class="page-section active">
+  <div class="section-title">Image Steganography</div>
+  <div class="section-subtitle">Hide secret messages inside images using LSB, DCT, or DWT encoding</div>
+  <div class="inner-tabs">
+    <button class="inner-tab active" onclick="switchInner('image','encode',this)">Encode</button>
+    <button class="inner-tab" onclick="switchInner('image','decode',this)">Decode</button>
   </div>
-  <div class="two-col">
-    <div style="display:flex;flex-direction:column;gap:16px;">
-      <div class="card">
-        <div class="card-title">Carrier Audio</div>
-        <div class="card-subtitle">The file that will carry hidden data</div>
-        <div class="dropzone" id="audio-enc-carrier-dropzone">
-          <input type="file" id="audio-enc-carrier" accept=".wav,.mp3,.flac" onchange="handleMediaFile('audio-enc-carrier',this,'audio')" />
-          <svg class="dropzone-icon" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <div class="dropzone-label">Drop carrier audio here</div>
-          <div class="dropzone-hint">WAV, MP3, or FLAC files.</div>
-          <button class="browse-btn" onclick="event.stopPropagation();document.getElementById('audio-enc-carrier').click()">Browse files</button>
-        </div>
-        <audio id="audio-enc-carrier-preview" class="audio-preview" controls></audio>
-        <div class="file-name" id="audio-enc-carrier-name"></div>
-      </div>
-      <div class="card" id="audio-enc-hidden-card" style="display:none;">
-        <div class="card-title">Hidden Audio</div>
-        <div class="card-subtitle">The audio file to hide inside the carrier</div>
-        <div class="dropzone">
-          <input type="file" id="audio-enc-hidden" accept=".wav,.mp3,.flac" onchange="handleMediaFile('audio-enc-hidden',this,'audio')" />
-          <svg class="dropzone-icon" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <div class="dropzone-label">Drop hidden audio here</div>
-          <div class="dropzone-hint">WAV, MP3, or FLAC files.</div>
-          <button class="browse-btn" onclick="event.stopPropagation();document.getElementById('audio-enc-hidden').click()">Browse files</button>
-        </div>
-        <audio id="audio-enc-hidden-preview" class="audio-preview" controls></audio>
-        <div class="file-name" id="audio-enc-hidden-name"></div>
-      </div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:16px;">
-      <div class="card" id="audio-enc-text-card">
-        <div class="card-title">Secret Message</div>
-        <div class="card-subtitle">Text to hide inside the audio</div>
-        <div class="field-group"><label class="field-label">Message Content</label><textarea id="audio-enc-message" placeholder="Type the secret content here..." rows="5" autocomplete="off"></textarea></div>
-      </div>
-      <div class="card">
-        <div class="card-title"><span class="dot"></span> Encryption</div>
-        <div class="field-group" style="margin-top:12px;margin-bottom:0;"><label class="field-label">Encryption Key</label><input type="password" id="audio-enc-key" placeholder="Enter a secret key" autocomplete="new-password" /></div>
-      </div>
-    </div>
-  </div>
-  <button class="action-btn" onclick="doAudioEncode()"><span id="audio-enc-btn-text">Encode into Audio</span><div class="spinner" id="audio-enc-spinner"></div></button>
-</div>
-
-<!-- ══ AUDIO DECODE ══ -->
-<div id="tab-audio-decode" class="tab-section">
-  <div class="page-title">Audio Decode</div>
-  <div class="page-subtitle">Extract hidden content from a stego audio file</div>
-  <div class="two-col">
-    <div class="card" style="min-height:260px;">
-      <div class="dropzone" id="audio-dec-dropzone">
-        <input type="file" id="audio-dec-file" accept=".wav,.mp3,.flac" onchange="handleMediaFile('audio-dec',this,'audio')" />
-        <svg class="dropzone-icon" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        <div class="dropzone-label">Drop stego audio here</div>
-        <div class="dropzone-hint">WAV, MP3, or FLAC files.</div>
-        <button class="browse-btn" onclick="event.stopPropagation();document.getElementById('audio-dec-file').click()">Browse files</button>
-      </div>
-      <audio id="audio-dec-preview" class="audio-preview" controls></audio>
-      <div class="file-name" id="audio-dec-name"></div>
-      <div class="field-group" style="margin-top:14px;margin-bottom:0;"><label class="field-label">Decryption Key</label><input type="password" id="audio-dec-key" placeholder="Enter the key used during encoding" autocomplete="new-password" /></div>
-    </div>
-    <div class="card"><div class="card-title">Extracted Content</div><div id="audio-dec-result-area" style="margin-top:12px;"><div style="font-size:13px;color:var(--gray-400);">Upload a stego audio file to extract its hidden content.</div></div></div>
-  </div>
-  <button class="action-btn" onclick="doAudioDecode()"><span id="audio-dec-btn-text">Extract Hidden Content</span><div class="spinner" id="audio-dec-spinner"></div></button>
-</div>
-
-<!-- ══ VIDEO ENCODE ══ -->
-<div id="tab-video-encode" class="tab-section">
-  <div class="page-title">Video Encode</div>
-  <div class="page-subtitle">Hide text, an image, or an audio file inside an MP4 video</div>
-  <div class="mode-row">
-    <button class="mode-pill active" id="video-enc-mode-text" onclick="setMode('video-enc','text')">Hide Text</button>
-    <button class="mode-pill" id="video-enc-mode-image" onclick="setMode('video-enc','image')">Hide Image</button>
-    <button class="mode-pill" id="video-enc-mode-audio" onclick="setMode('video-enc','audio')">Hide Audio</button>
-  </div>
-  <div class="two-col">
-    <div style="display:flex;flex-direction:column;gap:16px;">
-      <div class="card">
-        <div class="card-title">Carrier Video</div>
-        <div class="card-subtitle">MP4 only — max 50MB</div>
-        <div class="dropzone" id="video-enc-carrier-dropzone">
-          <input type="file" id="video-enc-carrier" accept=".mp4" onchange="handleMediaFile('video-enc-carrier',this,'video')" />
-          <svg class="dropzone-icon" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <div class="dropzone-label">Drop carrier video here</div>
-          <div class="dropzone-hint">MP4 files only, max 50MB.</div>
-          <button class="browse-btn" onclick="event.stopPropagation();document.getElementById('video-enc-carrier').click()">Browse files</button>
-        </div>
-        <video id="video-enc-carrier-preview" class="video-preview" controls muted></video>
-        <div class="file-name" id="video-enc-carrier-name"></div>
-        <div class="size-warning" id="video-enc-size-warn">⚠ File exceeds 50MB limit.</div>
-      </div>
-      <div class="card" id="video-enc-image-card" style="display:none;">
-        <div class="card-title">Hidden Image</div>
-        <div class="card-subtitle">The image to hide inside the video</div>
-        <div class="dropzone">
-          <input type="file" id="video-enc-image" accept="image/*" onchange="handleMediaFile('video-enc-image',this,'img')" />
-          <svg class="dropzone-icon" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <div class="dropzone-label">Drop image here</div>
-          <div class="dropzone-hint">PNG, JPG, WebP files.</div>
-          <button class="browse-btn" onclick="event.stopPropagation();document.getElementById('video-enc-image').click()">Browse files</button>
-        </div>
-        <img id="video-enc-image-preview" class="image-preview" alt="preview" />
-        <div class="file-name" id="video-enc-image-name"></div>
-      </div>
-      <div class="card" id="video-enc-audio-card" style="display:none;">
-        <div class="card-title">Hidden Audio</div>
-        <div class="card-subtitle">The audio file to hide inside the video</div>
-        <div class="dropzone">
-          <input type="file" id="video-enc-audio" accept=".wav,.mp3,.flac" onchange="handleMediaFile('video-enc-audio',this,'audio')" />
-          <svg class="dropzone-icon" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <div class="dropzone-label">Drop audio here</div>
-          <div class="dropzone-hint">WAV, MP3, FLAC files.</div>
-          <button class="browse-btn" onclick="event.stopPropagation();document.getElementById('video-enc-audio').click()">Browse files</button>
-        </div>
-        <audio id="video-enc-audio-preview" class="audio-preview" controls></audio>
-        <div class="file-name" id="video-enc-audio-name"></div>
-      </div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:16px;">
-      <div class="card" id="video-enc-text-card">
-        <div class="card-title">Secret Message</div>
-        <div class="card-subtitle">Text to hide inside the video</div>
-        <div class="field-group"><label class="field-label">Message Content</label><textarea id="video-enc-message" placeholder="Type the secret content here..." rows="5" autocomplete="off"></textarea></div>
-      </div>
-      <div class="card">
-        <div class="card-title"><span class="dot"></span> Encryption</div>
-        <div class="field-group" style="margin-top:12px;margin-bottom:0;"><label class="field-label">Encryption Key</label><input type="password" id="video-enc-key" placeholder="Enter a secret key" autocomplete="new-password" /></div>
-      </div>
-    </div>
-  </div>
-  <button class="action-btn" onclick="doVideoEncode()"><span id="video-enc-btn-text">Encode into Video</span><div class="spinner" id="video-enc-spinner"></div></button>
-</div>
-
-<!-- ══ VIDEO DECODE ══ -->
-<div id="tab-video-decode" class="tab-section">
-  <div class="page-title">Video Decode</div>
-  <div class="page-subtitle">Extract hidden content from a stego MP4 video</div>
-  <div class="two-col">
-    <div class="card" style="min-height:260px;">
-      <div class="dropzone" id="video-dec-dropzone">
-        <input type="file" id="video-dec-file" accept=".mp4" onchange="handleMediaFile('video-dec',this,'video')" />
-        <svg class="dropzone-icon" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        <div class="dropzone-label">Drop stego video here</div>
-        <div class="dropzone-hint">MP4 files only.</div>
-        <button class="browse-btn" onclick="event.stopPropagation();document.getElementById('video-dec-file').click()">Browse files</button>
-      </div>
-      <video id="video-dec-preview" class="video-preview" controls muted></video>
-      <div class="file-name" id="video-dec-name"></div>
-      <div class="field-group" style="margin-top:14px;margin-bottom:0;"><label class="field-label">Decryption Key</label><input type="password" id="video-dec-key" placeholder="Enter the key used during encoding" autocomplete="new-password" /></div>
-    </div>
-    <div class="card"><div class="card-title">Extracted Content</div><div id="video-dec-result-area" style="margin-top:12px;"><div style="font-size:13px;color:var(--gray-400);">Upload a stego video file to extract its hidden content.</div></div></div>
-  </div>
-  <button class="action-btn" onclick="doVideoDecode()"><span id="video-dec-btn-text">Extract Hidden Content</span><div class="spinner" id="video-dec-spinner"></div></button>
-</div>
-
-<!-- ══ TEXT CIPHER ══ -->
-<div id="tab-cipher" class="tab-section">
-  <div class="page-title">Text Cipher</div>
-  <div class="page-subtitle">Encrypt or decrypt text using classical ciphers</div>
-  <div class="two-col">
-    <div style="display:flex;flex-direction:column;gap:16px;">
-      <div class="card">
-        <div class="card-title">Input</div>
-        <div class="card-subtitle">The text to encrypt or decrypt</div>
-        <div class="field-group"><label class="field-label">Text</label><textarea id="cipher-input" placeholder="Enter your text here..." rows="6" autocomplete="off"></textarea></div>
-        <div class="field-group" style="margin-bottom:0">
-          <label class="field-label">Mode</label>
-          <div class="mode-row" style="margin-bottom:0;">
-            <button class="mode-pill active" id="cipher-mode-encrypt" onclick="setCipherMode('encrypt')">Encrypt</button>
-            <button class="mode-pill" id="cipher-mode-decrypt" onclick="setCipherMode('decrypt')">Decrypt</button>
-          </div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title"><span class="dot"></span> Cipher Settings</div>
-        <div class="field-group" style="margin-top:12px;">
-          <label class="field-label">Cipher</label>
-          <select class="cipher-select" id="cipher-type" onchange="updateCipherOptions()">
-            <option value="caesar">Caesar Cipher</option>
-            <option value="vigenere">Vigenère Cipher</option>
-            <option value="rot13">ROT13</option>
-            <option value="atbash">Atbash</option>
-            <option value="railfence">Rail Fence</option>
-            <option value="beaufort">Beaufort Cipher</option>
-          </select>
-        </div>
-        <div class="cipher-extra" id="cipher-shift-wrap">
-          <label class="field-label">Shift (1–25)</label>
-          <input type="number" id="cipher-shift" value="3" min="1" max="25" />
-        </div>
-        <div class="cipher-extra" id="cipher-key-wrap">
-          <label class="field-label">Key</label>
-          <input type="text" id="cipher-key" placeholder="Enter cipher key (letters only)" autocomplete="off" />
-        </div>
-        <div class="cipher-extra" id="cipher-rails-wrap">
-          <label class="field-label">Number of Rails (2–10)</label>
-          <input type="number" id="cipher-rails" value="3" min="2" max="10" />
-        </div>
-      </div>
-    </div>
-    <div class="card" style="min-height:300px;">
-      <div class="card-title">Output</div>
-      <div class="card-subtitle">Result will appear here</div>
-      <div class="result-box" id="cipher-output" style="min-height:180px;">Output will appear here after processing.</div>
-      <div class="result-actions" style="margin-top:12px;">
-        <button class="result-btn" onclick="copyResult('cipher-output')">Copy</button>
-        <button class="result-btn" onclick="downloadText('cipher-output','cipher_output.txt')">Download</button>
-        <button class="result-btn" onclick="sendToStego()">Send to Text Stego →</button>
-      </div>
-    </div>
-  </div>
-  <button class="action-btn" onclick="doCipher()"><span id="cipher-btn-text">Process Text</span><div class="spinner" id="cipher-spinner"></div></button>
-</div>
-
-<!-- ══ TEXT STEGO ══ -->
-<div id="tab-text-stego" class="tab-section">
-  <div class="page-title">Text Steganography</div>
-  <div class="page-subtitle">Hide secret text inside cover text using invisible zero-width characters</div>
-  <div class="mode-row">
-    <button class="mode-pill active" id="ts-mode-encode" onclick="setTSMode('encode')">Hide Message</button>
-    <button class="mode-pill" id="ts-mode-decode" onclick="setTSMode('decode')">Extract Message</button>
-  </div>
-  <div id="ts-encode-area">
+  <div id="image-encode" class="inner-pane active">
     <div class="two-col">
       <div class="card">
-        <div class="card-title">Cover Text</div>
-        <div class="card-subtitle">The visible text that will carry the hidden message</div>
-        <div class="field-group" style="margin-bottom:0"><label class="field-label">Cover Text</label><textarea id="ts-cover" placeholder="Enter any normal looking text here. The hidden message will be embedded invisibly inside it..." rows="8" autocomplete="off"></textarea></div>
+        <div class="card-title">Carrier Image</div>
+        <div class="card-subtitle">The image that will carry the hidden message</div>
+        <div class="dropzone" id="img-enc-dropzone">
+          <input type="file" id="img-enc-file" accept="image/*" onchange="handleImageFile('img-enc',this)" />
+          <svg class="dropzone-icon" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <div class="dropzone-label">Drop image here</div>
+          <div class="dropzone-hint">PNG, JPG, BMP, TIFF</div>
+          <button class="browse-btn" onclick="event.stopPropagation();document.getElementById('img-enc-file').click()">Browse</button>
+        </div>
+        <img id="img-enc-preview" class="image-preview" alt="preview" />
       </div>
-      <div class="card">
-        <div class="card-title">Secret Message</div>
-        <div class="card-subtitle">This will be hidden inside the cover text</div>
-        <div class="field-group" style="margin-bottom:0"><label class="field-label">Secret</label><textarea id="ts-secret" placeholder="Enter the secret message to hide..." rows="8" autocomplete="off"></textarea></div>
-      </div>
-    </div>
-    <button class="action-btn" onclick="doTextStegoEncode()"><span id="ts-enc-btn-text">Hide Message in Text</span><div class="spinner" id="ts-enc-spinner"></div></button>
-    <div id="ts-encode-result" style="display:none;margin-top:16px;">
-      <div class="card">
-        <div class="card-title">Stego Text</div>
-        <div class="card-subtitle">Looks identical to your cover text but contains the hidden message</div>
-        <div class="result-box" id="ts-stego-output"></div>
-        <div class="result-actions" style="margin-top:12px;">
-          <button class="result-btn" onclick="copyResult('ts-stego-output')">Copy Stego Text</button>
-          <button class="result-btn" onclick="downloadText('ts-stego-output','stego_text.txt')">Download .txt</button>
+      <div class="col-stack">
+        <div class="card">
+          <div class="card-title"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Secret Message</div>
+          <div class="field-group"><label class="field-label">Message</label><textarea id="img-enc-message" placeholder="Type the secret content here..." rows="4" oninput="updateCapacity()" autocomplete="off"></textarea></div>
+          <div class="field-group" style="margin-bottom:0"><label class="field-label">Encryption Key</label><input type="password" id="img-enc-key" placeholder="Enter a secret key" autocomplete="new-password" /></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="dot"></span> Options</div>
+          <div style="margin-top:6px;"><label class="field-label">Algorithm</label>
+            <div class="algo-group" id="img-enc-algo">
+              <button class="algo-pill selected" onclick="selectAlgo(this,'img-enc-algo')">LSB-1</button>
+              <button class="algo-pill" onclick="selectAlgo(this,'img-enc-algo')">LSB-2</button>
+              <button class="algo-pill" onclick="selectAlgo(this,'img-enc-algo')">LSB-4</button>
+              <button class="algo-pill" onclick="selectAlgo(this,'img-enc-algo')">DCT</button>
+              <button class="algo-pill" onclick="selectAlgo(this,'img-enc-algo')">DWT</button>
+            </div>
+          </div>
+          <div class="toggle-row"><div class="toggle-info"><strong>Random Pixel Order</strong><span>Scatter bits for harder detection</span></div><label class="toggle"><input type="checkbox" id="img-enc-randomize" checked /><span class="toggle-slider"></span></label></div>
+          <div class="toggle-row"><div class="toggle-info"><strong>Preserve EXIF</strong><span>Keep original camera metadata</span></div><label class="toggle"><input type="checkbox" id="img-enc-exif" /><span class="toggle-slider"></span></label></div>
+          <div class="capacity-row"><div class="capacity-header">Capacity <span id="capacity-label">0% used</span></div><div class="capacity-track"><div class="capacity-fill" id="capacity-fill"></div></div></div>
         </div>
       </div>
+    </div>
+    <button class="action-btn" onclick="doImgEncode()"><span id="img-enc-btn-text">Encode Message</span><div class="spinner" id="img-enc-spinner"></div></button>
+  </div>
+  <div id="image-decode" class="inner-pane">
+    <div class="two-col">
+      <div class="card">
+        <div class="dropzone" id="img-dec-dropzone">
+          <input type="file" id="img-dec-file" accept="image/*" onchange="handleImageFile('img-dec',this)" />
+          <svg class="dropzone-icon" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <div class="dropzone-label">Drop stego image here</div>
+          <div class="dropzone-hint">PNG, JPG, BMP, TIFF</div>
+        </div>
+        <img id="img-dec-preview" class="image-preview" alt="preview" />
+        <div class="field-group" style="margin-top:12px;margin-bottom:8px;"><label class="field-label">Decryption Key</label><input type="password" id="img-dec-key" placeholder="Enter the key used during encoding" autocomplete="new-password" /></div>
+        <div class="field-group" style="margin-bottom:0;"><label class="field-label">Algorithm</label>
+          <div class="algo-group" id="img-dec-algo">
+            <button class="algo-pill selected" onclick="selectAlgo(this,'img-dec-algo')">LSB-1</button>
+            <button class="algo-pill" onclick="selectAlgo(this,'img-dec-algo')">LSB-2</button>
+            <button class="algo-pill" onclick="selectAlgo(this,'img-dec-algo')">LSB-4</button>
+            <button class="algo-pill" onclick="selectAlgo(this,'img-dec-algo')">DCT</button>
+            <button class="algo-pill" onclick="selectAlgo(this,'img-dec-algo')">DWT</button>
+          </div>
+        </div>
+        <div class="toggle-row"><div class="toggle-info"><strong>Random Pixel Order</strong><span>Was this on during encoding?</span></div><label class="toggle"><input type="checkbox" id="img-dec-randomize" checked /><span class="toggle-slider"></span></label></div>
+      </div>
+      <div class="col-stack">
+        <div class="card">
+          <div class="card-title">Extracted Message</div>
+          <div class="result-box" id="img-dec-result">The extracted message will appear here.</div>
+          <div class="result-actions"><button class="result-btn" onclick="copyResult('img-dec-result')">Copy</button><button class="result-btn" onclick="downloadText('img-dec-result','extracted_message.txt')">Download</button></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Metadata</div>
+          <div class="meta-grid" style="margin-top:8px;">
+            <div class="meta-cell"><div class="meta-cell-label">Algorithm</div><div class="meta-cell-value" id="img-dec-meta-algo">—</div></div>
+            <div class="meta-cell"><div class="meta-cell-label">Payload Size</div><div class="meta-cell-value" id="img-dec-meta-size">—</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button class="action-btn" onclick="doImgDecode()"><span id="img-dec-btn-text">Extract Message</span><div class="spinner" id="img-dec-spinner"></div></button>
+  </div>
+</div>
+
+<!-- AUDIO -->
+<div id="page-audio" class="page-section">
+  <div class="section-title">Audio Steganography</div>
+  <div class="section-subtitle">Hide text or audio files inside WAV or FLAC carrier files</div>
+  <div class="inner-tabs">
+    <button class="inner-tab active" onclick="switchInner('audio','encode',this)">Encode</button>
+    <button class="inner-tab" onclick="switchInner('audio','decode',this)">Decode</button>
+  </div>
+  <div id="audio-encode" class="inner-pane active">
+    <div class="mode-row">
+      <button class="mode-pill active" id="aud-enc-mode-text" onclick="setAudEncMode('text')">Hide Text</button>
+      <button class="mode-pill" id="aud-enc-mode-audio" onclick="setAudEncMode('audio')">Hide Audio</button>
+    </div>
+    <div class="two-col">
+      <div class="col-stack">
+        <div class="card">
+          <div class="card-title">Carrier Audio</div>
+          <div class="dropzone">
+            <input type="file" id="aud-enc-carrier" accept=".wav,.flac" onchange="handleMediaFile('aud-enc-carrier',this,'audio')" />
+            <svg class="dropzone-icon" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <div class="dropzone-label">Drop carrier audio here</div>
+            <div class="dropzone-hint">WAV or FLAC files</div>
+            <button class="browse-btn" onclick="event.stopPropagation();document.getElementById('aud-enc-carrier').click()">Browse</button>
+          </div>
+          <audio id="aud-enc-carrier-preview" class="audio-preview" controls></audio>
+          <div class="file-name" id="aud-enc-carrier-name"></div>
+        </div>
+        <div class="card" id="aud-enc-hidden-card" style="display:none;">
+          <div class="card-title">Hidden Audio</div>
+          <div class="dropzone">
+            <input type="file" id="aud-enc-hidden" accept=".wav,.flac" onchange="handleMediaFile('aud-enc-hidden',this,'audio')" />
+            <svg class="dropzone-icon" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <div class="dropzone-label">Drop hidden audio here</div>
+            <div class="dropzone-hint">WAV or FLAC files</div>
+            <button class="browse-btn" onclick="event.stopPropagation();document.getElementById('aud-enc-hidden').click()">Browse</button>
+          </div>
+          <audio id="aud-enc-hidden-preview" class="audio-preview" controls></audio>
+          <div class="file-name" id="aud-enc-hidden-name"></div>
+        </div>
+      </div>
+      <div class="col-stack">
+        <div class="card" id="aud-enc-text-card">
+          <div class="card-title">Secret Message</div>
+          <div class="field-group"><label class="field-label">Message</label><textarea id="aud-enc-message" placeholder="Type secret content..." rows="5" autocomplete="off"></textarea></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="dot"></span> Encryption</div>
+          <div class="field-group" style="margin-top:8px;margin-bottom:0;"><label class="field-label">Key</label><input type="password" id="aud-enc-key" placeholder="Enter a secret key" autocomplete="new-password" /></div>
+        </div>
+      </div>
+    </div>
+    <button class="action-btn" onclick="doAudEncode()"><span id="aud-enc-btn-text">Encode into Audio</span><div class="spinner" id="aud-enc-spinner"></div></button>
+  </div>
+  <div id="audio-decode" class="inner-pane">
+    <div class="two-col">
+      <div class="card">
+        <div class="dropzone">
+          <input type="file" id="aud-dec-file" accept=".wav,.flac" onchange="handleMediaFile('aud-dec',this,'audio')" />
+          <svg class="dropzone-icon" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <div class="dropzone-label">Drop stego audio here</div>
+          <div class="dropzone-hint">WAV or FLAC files</div>
+          <button class="browse-btn" onclick="event.stopPropagation();document.getElementById('aud-dec-file').click()">Browse</button>
+        </div>
+        <audio id="aud-dec-preview" class="audio-preview" controls></audio>
+        <div class="file-name" id="aud-dec-name"></div>
+        <div class="field-group" style="margin-top:12px;margin-bottom:0;"><label class="field-label">Decryption Key</label><input type="password" id="aud-dec-key" placeholder="Enter the key used during encoding" autocomplete="new-password" /></div>
+      </div>
+      <div class="card"><div class="card-title">Extracted Content</div><div id="aud-dec-result-area" style="margin-top:10px;"><div style="font-size:13px;color:var(--gray-400);">Upload a stego audio file to extract content.</div></div></div>
+    </div>
+    <button class="action-btn" onclick="doAudDecode()"><span id="aud-dec-btn-text">Extract Content</span><div class="spinner" id="aud-dec-spinner"></div></button>
+  </div>
+</div>
+
+<!-- VIDEO -->
+<div id="page-video" class="page-section">
+  <div class="section-title">Video Steganography</div>
+  <div class="section-subtitle">Hide text, images, or audio inside MP4 video files (max 50MB)</div>
+  <div class="inner-tabs">
+    <button class="inner-tab active" onclick="switchInner('video','encode',this)">Encode</button>
+    <button class="inner-tab" onclick="switchInner('video','decode',this)">Decode</button>
+  </div>
+  <div id="video-encode" class="inner-pane active">
+    <div class="mode-row">
+      <button class="mode-pill active" id="vid-enc-mode-text" onclick="setVidEncMode('text')">Hide Text</button>
+      <button class="mode-pill" id="vid-enc-mode-image" onclick="setVidEncMode('image')">Hide Image</button>
+      <button class="mode-pill" id="vid-enc-mode-audio" onclick="setVidEncMode('audio')">Hide Audio</button>
+    </div>
+    <div class="two-col">
+      <div class="col-stack">
+        <div class="card">
+          <div class="card-title">Carrier Video</div>
+          <div class="card-subtitle">MP4 only — max 50MB</div>
+          <div class="dropzone">
+            <input type="file" id="vid-enc-carrier" accept=".mp4" onchange="handleMediaFile('vid-enc-carrier',this,'video')" />
+            <svg class="dropzone-icon" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <div class="dropzone-label">Drop carrier video here</div>
+            <div class="dropzone-hint">MP4 files only, max 50MB</div>
+            <button class="browse-btn" onclick="event.stopPropagation();document.getElementById('vid-enc-carrier').click()">Browse</button>
+          </div>
+          <video id="vid-enc-carrier-preview" class="video-preview" controls muted></video>
+          <div class="file-name" id="vid-enc-carrier-name"></div>
+          <div class="size-warning" id="vid-enc-size-warn">⚠ File exceeds 50MB limit.</div>
+        </div>
+        <div class="card" id="vid-enc-image-card" style="display:none;">
+          <div class="card-title">Hidden Image</div>
+          <div class="dropzone">
+            <input type="file" id="vid-enc-image" accept="image/*" onchange="handleMediaFile('vid-enc-image',this,'img')" />
+            <svg class="dropzone-icon" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <div class="dropzone-label">Drop image here</div>
+            <div class="dropzone-hint">PNG, JPG, WebP</div>
+            <button class="browse-btn" onclick="event.stopPropagation();document.getElementById('vid-enc-image').click()">Browse</button>
+          </div>
+          <img id="vid-enc-image-preview" class="image-preview" alt="preview" />
+        </div>
+        <div class="card" id="vid-enc-audio-card" style="display:none;">
+          <div class="card-title">Hidden Audio</div>
+          <div class="dropzone">
+            <input type="file" id="vid-enc-audio" accept=".wav,.flac" onchange="handleMediaFile('vid-enc-audio',this,'audio')" />
+            <svg class="dropzone-icon" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <div class="dropzone-label">Drop audio here</div>
+            <div class="dropzone-hint">WAV or FLAC</div>
+            <button class="browse-btn" onclick="event.stopPropagation();document.getElementById('vid-enc-audio').click()">Browse</button>
+          </div>
+          <audio id="vid-enc-audio-preview" class="audio-preview" controls></audio>
+        </div>
+      </div>
+      <div class="col-stack">
+        <div class="card" id="vid-enc-text-card">
+          <div class="card-title">Secret Message</div>
+          <div class="field-group"><label class="field-label">Message</label><textarea id="vid-enc-message" placeholder="Type secret content..." rows="5" autocomplete="off"></textarea></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="dot"></span> Encryption</div>
+          <div class="field-group" style="margin-top:8px;margin-bottom:0;"><label class="field-label">Key</label><input type="password" id="vid-enc-key" placeholder="Enter a secret key" autocomplete="new-password" /></div>
+        </div>
+      </div>
+    </div>
+    <button class="action-btn" onclick="doVidEncode()"><span id="vid-enc-btn-text">Encode into Video</span><div class="spinner" id="vid-enc-spinner"></div></button>
+  </div>
+  <div id="video-decode" class="inner-pane">
+    <div class="two-col">
+      <div class="card">
+        <div class="dropzone">
+          <input type="file" id="vid-dec-file" accept=".mp4" onchange="handleMediaFile('vid-dec',this,'video')" />
+          <svg class="dropzone-icon" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <div class="dropzone-label">Drop stego video here</div>
+          <div class="dropzone-hint">MP4 files only</div>
+          <button class="browse-btn" onclick="event.stopPropagation();document.getElementById('vid-dec-file').click()">Browse</button>
+        </div>
+        <video id="vid-dec-preview" class="video-preview" controls muted></video>
+        <div class="file-name" id="vid-dec-name"></div>
+        <div class="field-group" style="margin-top:12px;margin-bottom:0;"><label class="field-label">Decryption Key</label><input type="password" id="vid-dec-key" placeholder="Enter the key used during encoding" autocomplete="new-password" /></div>
+      </div>
+      <div class="card"><div class="card-title">Extracted Content</div><div id="vid-dec-result-area" style="margin-top:10px;"><div style="font-size:13px;color:var(--gray-400);">Upload a stego video file to extract content.</div></div></div>
+    </div>
+    <button class="action-btn" onclick="doVidDecode()"><span id="vid-dec-btn-text">Extract Content</span><div class="spinner" id="vid-dec-spinner"></div></button>
+  </div>
+</div>
+
+<!-- TEXT STEGO -->
+<div id="page-text-stego" class="page-section">
+  <div class="section-title">Text Steganography</div>
+  <div class="section-subtitle">Hide secret messages inside cover text using invisible zero-width characters</div>
+  <div class="inner-tabs">
+    <button class="inner-tab active" onclick="switchInner('text-stego','encode',this)">Hide Message</button>
+    <button class="inner-tab" onclick="switchInner('text-stego','decode',this)">Extract Message</button>
+  </div>
+  <div id="text-stego-encode" class="inner-pane active">
+    <div class="two-col">
+      <div class="card"><div class="card-title">Cover Text</div><div class="card-subtitle">Visible text that carries the hidden message</div><textarea id="ts-cover" placeholder="Enter any normal-looking text here..." rows="8" autocomplete="off"></textarea></div>
+      <div class="card"><div class="card-title">Secret Message</div><div class="card-subtitle">Hidden invisibly inside the cover text</div><textarea id="ts-secret" placeholder="Enter the secret message to hide..." rows="8" autocomplete="off"></textarea></div>
+    </div>
+    <button class="action-btn" onclick="doTSEncode()"><span id="ts-enc-btn-text">Hide Message in Text</span><div class="spinner" id="ts-enc-spinner"></div></button>
+    <div id="ts-encode-result" style="display:none;margin-top:16px;">
+      <div class="card"><div class="card-title">Stego Text</div><div class="card-subtitle">Looks identical to your cover text but carries the hidden message</div><div class="result-box" id="ts-stego-output"></div><div class="result-actions"><button class="result-btn" onclick="copyResult('ts-stego-output')">Copy</button><button class="result-btn" onclick="downloadText('ts-stego-output','stego_text.txt')">Download</button></div></div>
     </div>
   </div>
-  <div id="ts-decode-area" style="display:none;">
-    <div class="card">
-      <div class="card-title">Stego Text</div>
-      <div class="card-subtitle">Paste the text containing the hidden message</div>
-      <div class="field-group" style="margin-bottom:0"><label class="field-label">Paste stego text here</label><textarea id="ts-stego-input" placeholder="Paste the stego text here to extract the hidden message..." rows="8" autocomplete="off"></textarea></div>
-    </div>
-    <button class="action-btn" onclick="doTextStegoDecode()"><span id="ts-dec-btn-text">Extract Hidden Message</span><div class="spinner" id="ts-dec-spinner"></div></button>
+  <div id="text-stego-decode" class="inner-pane">
+    <div class="card"><div class="card-title">Stego Text</div><div class="card-subtitle">Paste the text containing the hidden message</div><textarea id="ts-stego-input" placeholder="Paste the stego text here..." rows="8" autocomplete="off"></textarea></div>
+    <button class="action-btn" onclick="doTSDecode()"><span id="ts-dec-btn-text">Extract Hidden Message</span><div class="spinner" id="ts-dec-spinner"></div></button>
     <div id="ts-decode-result" style="display:none;margin-top:16px;">
-      <div class="card">
-        <div class="card-title">Extracted Message</div>
-        <div class="result-box" id="ts-decoded-output"></div>
-        <div class="result-actions" style="margin-top:12px;">
-          <button class="result-btn" onclick="copyResult('ts-decoded-output')">Copy</button>
-          <button class="result-btn" onclick="downloadText('ts-decoded-output','extracted_message.txt')">Download .txt</button>
-        </div>
-      </div>
+      <div class="card"><div class="card-title">Extracted Message</div><div class="result-box" id="ts-decoded-output"></div><div class="result-actions"><button class="result-btn" onclick="copyResult('ts-decoded-output')">Copy</button><button class="result-btn" onclick="downloadText('ts-decoded-output','extracted_message.txt')">Download</button></div></div>
     </div>
   </div>
 </div>
 
-<!-- ══ HISTORY ══ -->
-<div id="tab-history" class="tab-section">
-  <div class="page-title">Your History</div>
-  <div class="page-subtitle">All operations tied to your access code</div>
+<!-- CIPHER -->
+<div id="page-cipher" class="page-section">
+  <div class="section-title">Text Cipher</div>
+  <div class="section-subtitle">Encrypt or decrypt text using classical ciphers</div>
+  <div class="inner-tabs">
+    <button class="inner-tab active" onclick="setCipherMode('encrypt');switchInner('cipher','encrypt',this)">Encrypt</button>
+    <button class="inner-tab" onclick="setCipherMode('decrypt');switchInner('cipher','decrypt',this)">Decrypt</button>
+  </div>
+  <div id="cipher-encrypt" class="inner-pane active">
+    <div class="two-col">
+      <div class="col-stack">
+        <div class="card"><div class="card-title">Input Text</div><textarea id="cipher-input" placeholder="Enter text to encrypt..." rows="6" autocomplete="off"></textarea></div>
+        <div class="card">
+          <div class="card-title"><span class="dot"></span> Cipher Settings</div>
+          <div class="field-group" style="margin-top:8px;"><label class="field-label">Cipher</label>
+            <select class="cipher-select" id="cipher-type" onchange="updateCipherOptions()">
+              <option value="caesar">Caesar Cipher</option>
+              <option value="vigenere">Vigenère Cipher</option>
+              <option value="rot13">ROT13</option>
+              <option value="atbash">Atbash</option>
+              <option value="railfence">Rail Fence</option>
+              <option value="beaufort">Beaufort Cipher</option>
+            </select>
+          </div>
+          <div class="cipher-extra" id="cipher-shift-wrap"><label class="field-label">Shift (1–25)</label><input type="number" id="cipher-shift" value="3" min="1" max="25" /></div>
+          <div class="cipher-extra" id="cipher-key-wrap"><label class="field-label">Key</label><input type="text" id="cipher-key" placeholder="Letters only" autocomplete="off" /></div>
+          <div class="cipher-extra" id="cipher-rails-wrap"><label class="field-label">Rails (2–10)</label><input type="number" id="cipher-rails" value="3" min="2" max="10" /></div>
+        </div>
+      </div>
+      <div class="card" style="min-height:280px;">
+        <div class="card-title">Output</div>
+        <div class="result-box" id="cipher-output" style="min-height:160px;">Output will appear after processing.</div>
+        <div class="result-actions" style="margin-top:10px;">
+          <button class="result-btn" onclick="copyResult('cipher-output')">Copy</button>
+          <button class="result-btn" onclick="downloadText('cipher-output','cipher_output.txt')">Download</button>
+          <button class="result-btn" onclick="sendToStego()">→ Text Stego</button>
+        </div>
+      </div>
+    </div>
+    <button class="action-btn" onclick="doCipher()"><span id="cipher-btn-text">Encrypt Text</span><div class="spinner" id="cipher-spinner"></div></button>
+  </div>
+  <div id="cipher-decrypt" class="inner-pane">
+    <div class="two-col">
+      <div class="card"><div class="card-title">Input Text</div><textarea id="cipher-input-dec" placeholder="Enter text to decrypt..." rows="6" autocomplete="off"></textarea></div>
+      <div class="card" style="min-height:280px;">
+        <div class="card-title">Output</div>
+        <div class="result-box" id="cipher-output-dec" style="min-height:160px;">Output will appear after processing.</div>
+        <div class="result-actions" style="margin-top:10px;">
+          <button class="result-btn" onclick="copyResult('cipher-output-dec')">Copy</button>
+          <button class="result-btn" onclick="downloadText('cipher-output-dec','decrypted_output.txt')">Download</button>
+        </div>
+      </div>
+    </div>
+    <button class="action-btn" onclick="doCipher()"><span id="cipher-btn-text-dec">Decrypt Text</span><div class="spinner" id="cipher-spinner-dec"></div></button>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div id="page-history" class="page-section">
+  <div class="section-title">History</div>
+  <div class="section-subtitle">All operations tied to your access code</div>
   <div class="summary-row">
     <div class="summary-card"><div class="summary-card-label">Image Ops</div><div class="summary-card-value" id="s-image">—</div></div>
     <div class="summary-card"><div class="summary-card-label">Audio Ops</div><div class="summary-card-value" id="s-audio">—</div></div>
     <div class="summary-card"><div class="summary-card-label">Video Ops</div><div class="summary-card-value" id="s-video">—</div></div>
-    <div class="summary-card"><div class="summary-card-label">Cipher Ops</div><div class="summary-card-value" id="s-cipher">—</div></div>
+    <div class="summary-card"><div class="summary-card-label">Total</div><div class="summary-card-value" id="s-total">—</div></div>
   </div>
   <div class="history-filters">
     <button class="filter-pill active" onclick="filterHistory('all',this)">All</button>
@@ -586,13 +607,13 @@
   </div>
   <div class="card" style="padding:0;overflow:hidden;">
     <table class="history-table">
-      <thead><tr><th>Type</th><th>File / Cipher</th><th>Details</th><th>Status</th><th>Time</th></tr></thead>
+      <thead><tr><th>Type</th><th>File</th><th>Details</th><th>Status</th><th>Time</th></tr></thead>
       <tbody id="history-tbody"><tr><td colspan="5" class="empty-state">Loading…</td></tr></tbody>
     </table>
   </div>
 </div>
 
-</main>
+</div>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -600,10 +621,9 @@
 const API = 'https://cryptography-tool.onrender.com/api';
 let currentUserCode = null;
 let allHistoryRows  = [];
-let audioEncMode    = 'text';
-let videoEncMode    = 'text';
+let audEncMode      = 'text';
+let vidEncMode      = 'text';
 let cipherMode      = 'encrypt';
-let tsMode          = 'encode';
 
 function generateHex(len=16){ return Array.from(crypto.getRandomValues(new Uint8Array(len))).map(b=>b.toString(16).padStart(2,'0')).join(''); }
 function showEnter(){ document.getElementById('login-step-enter').style.display=''; document.getElementById('login-step-register').style.display='none'; }
@@ -611,43 +631,47 @@ function showRegister(){ const c=generateHex(); document.getElementById('new-hex
 function copyNewCode(){ navigator.clipboard.writeText(document.getElementById('new-hex-display').dataset.code).then(()=>showToast('Code copied!','success')); }
 function confirmRegister(){ loginWith(document.getElementById('new-hex-display').dataset.code); }
 function doLogin(){ const c=document.getElementById('login-code-input').value.trim().toLowerCase(); if(c.length<8){document.getElementById('login-err').style.display='block';return;} document.getElementById('login-err').style.display='none'; loginWith(c); }
-function loginWith(code){ currentUserCode=code; document.getElementById('login-overlay').style.display='none'; document.getElementById('app').style.display=''; document.getElementById('nav-avatar').textContent=code.slice(0,2).toUpperCase(); document.getElementById('nav-code-display').textContent=code.slice(0,4)+'…'+code.slice(-4); }
-function doLogout(){ currentUserCode=null; document.getElementById('app').style.display='none'; document.getElementById('login-overlay').style.display='flex'; document.getElementById('login-code-input').value=''; showEnter(); ['encode-message','encode-key','decode-key','audio-enc-key','audio-dec-key','audio-enc-message','video-enc-key','video-enc-message','cipher-input','cipher-key','ts-cover','ts-secret','ts-stego-input'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); updateCapacity(); }
+function loginWith(code){ currentUserCode=code; document.getElementById('login-overlay').style.display='none'; document.getElementById('app').style.display=''; document.getElementById('nav-avatar').textContent=code.slice(0,2).toUpperCase(); document.getElementById('nav-code-display').textContent=code.slice(0,4)+'…'+code.slice(-4); updateCipherOptions(); }
+function doLogout(){ currentUserCode=null; document.getElementById('app').style.display='none'; document.getElementById('login-overlay').style.display='flex'; document.getElementById('login-code-input').value=''; showEnter(); }
 window.addEventListener('DOMContentLoaded',()=>{ updateCipherOptions(); });
-function switchTab(name,btn){ document.querySelectorAll('.tab-section').forEach(s=>s.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); document.getElementById('tab-'+name).classList.add('active'); btn.classList.add('active'); if(name==='history') loadHistory(); }
+
+function showPage(name,btn){ document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active')); document.querySelectorAll('.sidebar-item').forEach(b=>b.classList.remove('active')); document.getElementById('page-'+name).classList.add('active'); btn.classList.add('active'); if(name==='history') loadHistory(); }
+
+function switchInner(page,pane,btn){ const pageEl=document.getElementById('page-'+page); pageEl.querySelectorAll('.inner-tab').forEach(t=>t.classList.remove('active')); pageEl.querySelectorAll('.inner-pane').forEach(p=>p.classList.remove('active')); const paneEl=document.getElementById(page+'-'+pane)||document.getElementById('cipher-'+pane); if(paneEl) paneEl.classList.add('active'); btn.classList.add('active'); }
+
 function showToast(msg,type=''){ const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show '+type; setTimeout(()=>t.className='toast',3500); }
 function selectAlgo(el,groupId){ document.querySelectorAll('#'+groupId+' .algo-pill').forEach(p=>p.classList.remove('selected')); el.classList.add('selected'); }
-function updateCapacity(){ const msg=document.getElementById('encode-message').value; const pct=Math.min(100,Math.round((msg.length*8/786432)*100)); document.getElementById('capacity-fill').style.width=pct+'%'; document.getElementById('capacity-label').textContent=pct+'% used'; }
-function handleImageFile(tab,input){ if(!input.files[0]) return; const url=URL.createObjectURL(input.files[0]); const prev=document.getElementById(tab+'-preview'); prev.src=url; prev.classList.add('visible'); if(tab==='encode') updateCapacity(); }
-function handleMediaFile(id,input,mediaType){ if(!input.files[0]) return; const file=input.files[0]; const url=URL.createObjectURL(file); const preview=document.getElementById(id+'-preview'); const nameEl=document.getElementById(id+'-name'); if(preview){preview.src=url;preview.classList.add('visible');} if(nameEl){nameEl.textContent=file.name;nameEl.classList.add('visible');} if(id==='video-enc-carrier'){const warn=document.getElementById('video-enc-size-warn');warn.classList.toggle('visible',file.size>50*1024*1024);} }
-['encode','decode'].forEach(id=>{ const el=document.getElementById(id+'-dropzone'); el.addEventListener('dragover',e=>{e.preventDefault();el.classList.add('dragover');}); el.addEventListener('dragleave',()=>el.classList.remove('dragover')); el.addEventListener('drop',e=>{e.preventDefault();el.classList.remove('dragover');const file=e.dataTransfer.files[0];if(!file)return;const inp=document.getElementById(id+'-file');const dt=new DataTransfer();dt.items.add(file);inp.files=dt.files;inp.dispatchEvent(new Event('change'));}); });
-function setMode(prefix,mode){
-  if(prefix==='audio-enc'){ audioEncMode=mode; ['text','audio'].forEach(m=>{document.getElementById('audio-enc-mode-'+m).classList.toggle('active',m===mode);}); document.getElementById('audio-enc-text-card').style.display=mode==='text'?'':'none'; document.getElementById('audio-enc-hidden-card').style.display=mode==='audio'?'':'none'; }
-  else if(prefix==='video-enc'){ videoEncMode=mode; ['text','image','audio'].forEach(m=>{document.getElementById('video-enc-mode-'+m).classList.toggle('active',m===mode);}); document.getElementById('video-enc-text-card').style.display=mode==='text'?'':'none'; document.getElementById('video-enc-image-card').style.display=mode==='image'?'':'none'; document.getElementById('video-enc-audio-card').style.display=mode==='audio'?'':'none'; }
-}
-function setCipherMode(mode){ cipherMode=mode; document.getElementById('cipher-mode-encrypt').classList.toggle('active',mode==='encrypt'); document.getElementById('cipher-mode-decrypt').classList.toggle('active',mode==='decrypt'); }
-function setTSMode(mode){ tsMode=mode; document.getElementById('ts-mode-encode').classList.toggle('active',mode==='encode'); document.getElementById('ts-mode-decode').classList.toggle('active',mode==='decode'); document.getElementById('ts-encode-area').style.display=mode==='encode'?'':'none'; document.getElementById('ts-decode-area').style.display=mode==='decode'?'':'none'; }
-function updateCipherOptions(){ const c=document.getElementById('cipher-type').value; document.getElementById('cipher-shift-wrap').classList.toggle('visible',c==='caesar'); document.getElementById('cipher-key-wrap').classList.toggle('visible',c==='vigenere'||c==='beaufort'); document.getElementById('cipher-rails-wrap').classList.toggle('visible',c==='railfence'); }
-async function doEncode(){ const file=document.getElementById('encode-file').files[0]; const message=document.getElementById('encode-message').value.trim(); const key=document.getElementById('encode-key').value.trim(); if(!file) return showToast('Please select a carrier image.','error'); if(!message) return showToast('Please enter a message.','error'); if(!key) return showToast('Please enter an encryption key.','error'); setLoading('encode',true); try{ const fd=new FormData(); fd.append('image',file);fd.append('message',message);fd.append('key',key);fd.append('user_code',currentUserCode);fd.append('algorithm',document.querySelector('#encode-algo-group .algo-pill.selected')?.textContent.trim()??'LSB-1');fd.append('randomize',document.getElementById('encode-randomize').checked);fd.append('preserve_exif',document.getElementById('encode-exif').checked); const res=await fetch(API+'/encode/',{method:'POST',body:fd}); if(!res.ok){const e=await res.json();throw new Error(e.detail||'Encoding failed');} dlBlob(await res.blob(),'stego_image.png'); showToast('Message encoded! Image downloading.','success'); }catch(e){showToast(e.message,'error');}finally{setLoading('encode',false);} }
-async function doDecode(){ const file=document.getElementById('decode-file').files[0]; const key=document.getElementById('decode-key').value.trim(); if(!file) return showToast('Please upload a stego image.','error'); if(!key) return showToast('Please enter the decryption key.','error'); setLoading('decode',true); try{ const fd=new FormData(); fd.append('image',file);fd.append('key',key);fd.append('user_code',currentUserCode);fd.append('algorithm',document.querySelector('#decode-algo-group .algo-pill.selected')?.textContent.trim()??'LSB-1');fd.append('randomize',document.getElementById('decode-randomize').checked); const res=await fetch(API+'/decode/',{method:'POST',body:fd}); const data=await res.json(); if(!res.ok) throw new Error(data.detail||'Decoding failed'); document.getElementById('decode-result').textContent=data.message; document.getElementById('meta-method').textContent=document.querySelector('#decode-algo-group .algo-pill.selected')?.textContent.trim()??'LSB-1'; document.getElementById('meta-size').textContent=data.message.length+' Bytes'; showToast('Message extracted successfully.','success'); }catch(e){showToast(e.message,'error');}finally{setLoading('decode',false);} }
-async function doAudioEncode(){ const carrier=document.getElementById('audio-enc-carrier').files[0]; const key=document.getElementById('audio-enc-key').value.trim(); if(!carrier) return showToast('Please select a carrier audio file.','error'); if(!key) return showToast('Please enter an encryption key.','error'); setLoading('audio-enc',true); try{ const fd=new FormData();fd.append('key',key);fd.append('user_code',currentUserCode); let endpoint; if(audioEncMode==='text'){const msg=document.getElementById('audio-enc-message').value.trim();if(!msg){setLoading('audio-enc',false);return showToast('Please enter a message.','error');}fd.append('audio',carrier);fd.append('message',msg);endpoint=API+'/audio/encode/text';}else{const hidden=document.getElementById('audio-enc-hidden').files[0];if(!hidden){setLoading('audio-enc',false);return showToast('Please select the hidden audio file.','error');}fd.append('carrier',carrier);fd.append('hidden',hidden);endpoint=API+'/audio/encode/audio';} const res=await fetch(endpoint,{method:'POST',body:fd}); if(!res.ok){const e=await res.json();throw new Error(e.detail||'Audio encoding failed');} const ext=res.headers.get('content-disposition')?.match(/filename=.+\.(\w+)/)?.[1]??'wav'; dlBlob(await res.blob(),'stego_audio.'+ext); showToast('Audio encoded! File downloading.','success'); }catch(e){showToast(e.message,'error');}finally{setLoading('audio-enc',false);} }
-async function doAudioDecode(){ const file=document.getElementById('audio-dec-file').files[0]; const key=document.getElementById('audio-dec-key').value.trim(); if(!file) return showToast('Please upload a stego audio file.','error'); if(!key) return showToast('Please enter the decryption key.','error'); setLoading('audio-dec',true); try{ const fd=new FormData();fd.append('audio',file);fd.append('key',key);fd.append('user_code',currentUserCode); const res=await fetch(API+'/audio/decode/',{method:'POST',body:fd}); const ct=res.headers.get('content-type')??''; if(ct.includes('application/json')){const data=await res.json();if(!res.ok)throw new Error(data.detail||'Decoding failed');renderTextResult('audio-dec-result-area',data.message);showToast('Text message extracted!','success');}else{if(!res.ok)throw new Error('Decoding failed');const blob=await res.blob();const disp=res.headers.get('content-disposition')??'';const fname=disp.match(/filename=(.+)/)?.[1]??'extracted_audio.wav';renderAudioResult('audio-dec-result-area',blob,fname);showToast('Audio file extracted!','success');} }catch(e){showToast(e.message,'error');}finally{setLoading('audio-dec',false);} }
-async function doVideoEncode(){ const carrier=document.getElementById('video-enc-carrier').files[0]; const key=document.getElementById('video-enc-key').value.trim(); if(!carrier) return showToast('Please select a carrier video file.','error'); if(carrier.size>50*1024*1024) return showToast('Video exceeds 50MB limit.','error'); if(!key) return showToast('Please enter an encryption key.','error'); setLoading('video-enc',true); try{ const fd=new FormData();fd.append('key',key);fd.append('user_code',currentUserCode); let endpoint; if(videoEncMode==='text'){const msg=document.getElementById('video-enc-message').value.trim();if(!msg){setLoading('video-enc',false);return showToast('Please enter a message.','error');}fd.append('video',carrier);fd.append('message',msg);endpoint=API+'/video/encode/text';}else if(videoEncMode==='image'){const img=document.getElementById('video-enc-image').files[0];if(!img){setLoading('video-enc',false);return showToast('Please select the hidden image.','error');}fd.append('video',carrier);fd.append('image',img);endpoint=API+'/video/encode/image';}else{const audio=document.getElementById('video-enc-audio').files[0];if(!audio){setLoading('video-enc',false);return showToast('Please select the hidden audio file.','error');}fd.append('video',carrier);fd.append('audio',audio);endpoint=API+'/video/encode/audio';} const res=await fetch(endpoint,{method:'POST',body:fd}); if(!res.ok){const e=await res.json();throw new Error(e.detail||'Video encoding failed');} dlBlob(await res.blob(),'stego_'+carrier.name); showToast('Video encoded! File downloading.','success'); }catch(e){showToast(e.message,'error');}finally{setLoading('video-enc',false);} }
-async function doVideoDecode(){ const file=document.getElementById('video-dec-file').files[0]; const key=document.getElementById('video-dec-key').value.trim(); if(!file) return showToast('Please upload a stego video file.','error'); if(!key) return showToast('Please enter the decryption key.','error'); setLoading('video-dec',true); try{ const fd=new FormData();fd.append('video',file);fd.append('key',key);fd.append('user_code',currentUserCode); const res=await fetch(API+'/video/decode/',{method:'POST',body:fd}); const ct=res.headers.get('content-type')??''; if(ct.includes('application/json')){const data=await res.json();if(!res.ok)throw new Error(data.detail||'Decoding failed');if(data.type==='text'){renderTextResult('video-dec-result-area',data.message);showToast('Text message extracted!','success');}}else{if(!res.ok)throw new Error('Decoding failed');const blob=await res.blob();const disp=res.headers.get('content-disposition')??'';const fname=disp.match(/filename=(.+)/)?.[1]??'extracted_file';const ct2=res.headers.get('content-type')??'';if(ct2.startsWith('audio/')){renderAudioResult('video-dec-result-area',blob,fname);}else{renderImageResult('video-dec-result-area',blob,fname);}showToast('File extracted!','success');} }catch(e){showToast(e.message,'error');}finally{setLoading('video-dec',false);} }
-async function doCipher(){ const text=document.getElementById('cipher-input').value.trim(); if(!text) return showToast('Please enter some text.','error'); const cipher=document.getElementById('cipher-type').value; const shift=parseInt(document.getElementById('cipher-shift').value)||3; const key=document.getElementById('cipher-key').value.trim(); const rails=parseInt(document.getElementById('cipher-rails').value)||3; if((cipher==='vigenere'||cipher==='beaufort')&&!key) return showToast('This cipher requires a key.','error'); setLoading('cipher',true); try{ const res=await fetch(API+'/cipher/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,cipher,mode:cipherMode,key,shift,rails})}); const data=await res.json(); if(!res.ok) throw new Error(data.detail||'Cipher failed'); document.getElementById('cipher-output').textContent=data.output; showToast(cipherMode==='encrypt'?'Text encrypted!':'Text decrypted!','success'); }catch(e){showToast(e.message,'error');}finally{setLoading('cipher',false);} }
-function sendToStego(){ const output=document.getElementById('cipher-output').textContent; if(!output||output==='Output will appear here after processing.') return showToast('No cipher output to send.','error'); document.getElementById('ts-secret').value=output; document.querySelectorAll('.tab-btn').forEach(b=>{if(b.textContent==='Text Stego'){b.click();}}); showToast('Cipher output sent to Text Stego!','success'); }
-async function doTextStegoEncode(){ const cover=document.getElementById('ts-cover').value.trim(); const secret=document.getElementById('ts-secret').value.trim(); if(!cover) return showToast('Please enter cover text.','error'); if(!secret) return showToast('Please enter a secret message.','error'); setLoading('ts-enc',true); try{ const res=await fetch(API+'/text/encode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cover_text:cover,secret})}); const data=await res.json(); if(!res.ok) throw new Error(data.detail||'Text stego encoding failed'); document.getElementById('ts-stego-output').textContent=data.stego_text; document.getElementById('ts-encode-result').style.display=''; showToast('Message hidden in text!','success'); }catch(e){showToast(e.message,'error');}finally{setLoading('ts-enc',false);} }
-async function doTextStegoDecode(){ const stego=document.getElementById('ts-stego-input').value; if(!stego.trim()) return showToast('Please paste the stego text.','error'); setLoading('ts-dec',true); try{ const res=await fetch(API+'/text/decode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stego_text:stego})}); const data=await res.json(); if(!res.ok) throw new Error(data.detail||'Text stego decoding failed'); document.getElementById('ts-decoded-output').textContent=data.secret; document.getElementById('ts-decode-result').style.display=''; showToast('Hidden message extracted!','success'); }catch(e){showToast(e.message,'error');}finally{setLoading('ts-dec',false);} }
-function renderTextResult(areaId,text){ document.getElementById(areaId).innerHTML=`<div class="result-box" id="${areaId}-text">${text}</div><div class="result-actions" style="margin-top:12px;"><button class="result-btn" onclick="copyResult('${areaId}-text')">Copy Text</button><button class="result-btn" onclick="downloadText('${areaId}-text','extracted_message.txt')">Download .txt</button></div>`; }
-function renderAudioResult(areaId,blob,fname){ const url=URL.createObjectURL(blob); document.getElementById(areaId).innerHTML=`<div style="font-size:13px;color:var(--gray-500);margin-bottom:10px;">Hidden audio extracted:</div><audio controls src="${url}" style="width:100%;border-radius:6px;"></audio><div class="result-actions" style="margin-top:12px;"><a class="result-btn" href="${url}" download="${fname}">Download Audio</a></div>`; }
-function renderImageResult(areaId,blob,fname){ const url=URL.createObjectURL(blob); document.getElementById(areaId).innerHTML=`<div style="font-size:13px;color:var(--gray-500);margin-bottom:10px;">Hidden image extracted:</div><img src="${url}" style="max-width:100%;border-radius:6px;border:1px solid var(--gray-200);" /><div class="result-actions" style="margin-top:12px;"><a class="result-btn" href="${url}" download="${fname}">Download Image</a></div>`; }
-function dlBlob(blob,filename){ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click(); }
+function updateCapacity(){ const msg=document.getElementById('img-enc-message').value; const pct=Math.min(100,Math.round((msg.length*8/786432)*100)); document.getElementById('capacity-fill').style.width=pct+'%'; document.getElementById('capacity-label').textContent=pct+'% used'; }
+function handleImageFile(id,input){ if(!input.files[0]) return; const url=URL.createObjectURL(input.files[0]); const prev=document.getElementById(id+'-preview'); if(prev){prev.src=url;prev.classList.add('visible');} if(id==='img-enc') updateCapacity(); }
+function handleMediaFile(id,input,type){ if(!input.files[0]) return; const file=input.files[0]; const url=URL.createObjectURL(file); const prev=document.getElementById(id+'-preview'); const nameEl=document.getElementById(id+'-name'); if(prev){prev.src=url;prev.classList.add('visible');} if(nameEl){nameEl.textContent=file.name;nameEl.classList.add('visible');} if(id==='vid-enc-carrier'){const w=document.getElementById('vid-enc-size-warn');if(w)w.classList.toggle('visible',file.size>50*1024*1024);} }
+
+function setAudEncMode(mode){ audEncMode=mode; ['text','audio'].forEach(m=>{document.getElementById('aud-enc-mode-'+m).classList.toggle('active',m===mode);}); document.getElementById('aud-enc-text-card').style.display=mode==='text'?'':'none'; document.getElementById('aud-enc-hidden-card').style.display=mode==='audio'?'':'none'; }
+function setVidEncMode(mode){ vidEncMode=mode; ['text','image','audio'].forEach(m=>{document.getElementById('vid-enc-mode-'+m).classList.toggle('active',m===mode);}); document.getElementById('vid-enc-text-card').style.display=mode==='text'?'':'none'; document.getElementById('vid-enc-image-card').style.display=mode==='image'?'':'none'; document.getElementById('vid-enc-audio-card').style.display=mode==='audio'?'':'none'; }
+function setCipherMode(mode){ cipherMode=mode; }
+function updateCipherOptions(){ const el=document.getElementById('cipher-type'); if(!el) return; const c=el.value; document.getElementById('cipher-shift-wrap').classList.toggle('visible',c==='caesar'); document.getElementById('cipher-key-wrap').classList.toggle('visible',c==='vigenere'||c==='beaufort'); document.getElementById('cipher-rails-wrap').classList.toggle('visible',c==='railfence'); }
+
+async function doImgEncode(){ const file=document.getElementById('img-enc-file').files[0]; const message=document.getElementById('img-enc-message').value.trim(); const key=document.getElementById('img-enc-key').value.trim(); if(!file) return showToast('Please select a carrier image.','error'); if(!message) return showToast('Please enter a message.','error'); if(!key) return showToast('Please enter a key.','error'); setLoading('img-enc',true); try{ const fd=new FormData(); fd.append('image',file);fd.append('message',message);fd.append('key',key);fd.append('user_code',currentUserCode);fd.append('algorithm',document.querySelector('#img-enc-algo .algo-pill.selected')?.textContent.trim()??'LSB-1');fd.append('randomize',document.getElementById('img-enc-randomize').checked);fd.append('preserve_exif',document.getElementById('img-enc-exif').checked); const res=await fetch(API+'/encode/',{method:'POST',body:fd}); if(!res.ok){const e=await res.json();throw new Error(e.detail||'Encoding failed');} dlBlob(await res.blob(),'stego_image.png'); showToast('Image encoded and downloading!','success'); }catch(e){showToast(e.message,'error');}finally{setLoading('img-enc',false);} }
+async function doImgDecode(){ const file=document.getElementById('img-dec-file').files[0]; const key=document.getElementById('img-dec-key').value.trim(); if(!file) return showToast('Please upload a stego image.','error'); if(!key) return showToast('Please enter the key.','error'); setLoading('img-dec',true); try{ const fd=new FormData(); fd.append('image',file);fd.append('key',key);fd.append('user_code',currentUserCode);fd.append('algorithm',document.querySelector('#img-dec-algo .algo-pill.selected')?.textContent.trim()??'LSB-1');fd.append('randomize',document.getElementById('img-dec-randomize').checked); const res=await fetch(API+'/decode/',{method:'POST',body:fd}); const data=await res.json(); if(!res.ok) throw new Error(data.detail||'Decoding failed'); document.getElementById('img-dec-result').textContent=data.message; document.getElementById('img-dec-meta-algo').textContent=document.querySelector('#img-dec-algo .algo-pill.selected')?.textContent.trim()??'LSB-1'; document.getElementById('img-dec-meta-size').textContent=data.message.length+' B'; showToast('Message extracted!','success'); }catch(e){showToast(e.message,'error');}finally{setLoading('img-dec',false);} }
+async function doAudEncode(){ const carrier=document.getElementById('aud-enc-carrier').files[0]; const key=document.getElementById('aud-enc-key').value.trim(); if(!carrier) return showToast('Please select a carrier audio file.','error'); if(!key) return showToast('Please enter a key.','error'); setLoading('aud-enc',true); try{ const fd=new FormData();fd.append('key',key);fd.append('user_code',currentUserCode); let endpoint; if(audEncMode==='text'){const msg=document.getElementById('aud-enc-message').value.trim();if(!msg){setLoading('aud-enc',false);return showToast('Please enter a message.','error');}fd.append('audio',carrier);fd.append('message',msg);endpoint=API+'/audio/encode/text';}else{const hidden=document.getElementById('aud-enc-hidden').files[0];if(!hidden){setLoading('aud-enc',false);return showToast('Please select the hidden audio file.','error');}fd.append('carrier',carrier);fd.append('hidden',hidden);endpoint=API+'/audio/encode/audio';} const res=await fetch(endpoint,{method:'POST',body:fd}); if(!res.ok){const e=await res.json();throw new Error(e.detail||'Audio encoding failed');} const ext=res.headers.get('content-disposition')?.match(/filename=.+\.(\w+)/)?.[1]??'wav'; dlBlob(await res.blob(),'stego_audio.'+ext); showToast('Audio encoded and downloading!','success'); }catch(e){showToast(e.message,'error');}finally{setLoading('aud-enc',false);} }
+async function doAudDecode(){ const file=document.getElementById('aud-dec-file').files[0]; const key=document.getElementById('aud-dec-key').value.trim(); if(!file) return showToast('Please upload a stego audio file.','error'); if(!key) return showToast('Please enter the key.','error'); setLoading('aud-dec',true); try{ const fd=new FormData();fd.append('audio',file);fd.append('key',key);fd.append('user_code',currentUserCode); const res=await fetch(API+'/audio/decode/',{method:'POST',body:fd}); const ct=res.headers.get('content-type')??''; if(ct.includes('application/json')){const data=await res.json();if(!res.ok)throw new Error(data.detail||'Decoding failed');renderTextResult('aud-dec-result-area',data.message);showToast('Text extracted!','success');}else{if(!res.ok)throw new Error('Decoding failed');const blob=await res.blob();const disp=res.headers.get('content-disposition')??'';const fname=disp.match(/filename=(.+)/)?.[1]??'extracted_audio.wav';renderAudioResult('aud-dec-result-area',blob,fname);showToast('Audio extracted!','success');} }catch(e){showToast(e.message,'error');}finally{setLoading('aud-dec',false);} }
+async function doVidEncode(){ const carrier=document.getElementById('vid-enc-carrier').files[0]; const key=document.getElementById('vid-enc-key').value.trim(); if(!carrier) return showToast('Please select a carrier video.','error'); if(carrier.size>50*1024*1024) return showToast('Video exceeds 50MB.','error'); if(!key) return showToast('Please enter a key.','error'); setLoading('vid-enc',true); try{ const fd=new FormData();fd.append('key',key);fd.append('user_code',currentUserCode); let endpoint; if(vidEncMode==='text'){const msg=document.getElementById('vid-enc-message').value.trim();if(!msg){setLoading('vid-enc',false);return showToast('Please enter a message.','error');}fd.append('video',carrier);fd.append('message',msg);endpoint=API+'/video/encode/text';}else if(vidEncMode==='image'){const img=document.getElementById('vid-enc-image').files[0];if(!img){setLoading('vid-enc',false);return showToast('Please select the hidden image.','error');}fd.append('video',carrier);fd.append('image',img);endpoint=API+'/video/encode/image';}else{const audio=document.getElementById('vid-enc-audio').files[0];if(!audio){setLoading('vid-enc',false);return showToast('Please select the hidden audio.','error');}fd.append('video',carrier);fd.append('audio',audio);endpoint=API+'/video/encode/audio';} const res=await fetch(endpoint,{method:'POST',body:fd}); if(!res.ok){const e=await res.json();throw new Error(e.detail||'Video encoding failed');} dlBlob(await res.blob(),'stego_'+carrier.name); showToast('Video encoded and downloading!','success'); }catch(e){showToast(e.message,'error');}finally{setLoading('vid-enc',false);} }
+async function doVidDecode(){ const file=document.getElementById('vid-dec-file').files[0]; const key=document.getElementById('vid-dec-key').value.trim(); if(!file) return showToast('Please upload a stego video.','error'); if(!key) return showToast('Please enter the key.','error'); setLoading('vid-dec',true); try{ const fd=new FormData();fd.append('video',file);fd.append('key',key);fd.append('user_code',currentUserCode); const res=await fetch(API+'/video/decode/',{method:'POST',body:fd}); const ct=res.headers.get('content-type')??''; if(ct.includes('application/json')){const data=await res.json();if(!res.ok)throw new Error(data.detail||'Decoding failed');if(data.type==='text'){renderTextResult('vid-dec-result-area',data.message);showToast('Text extracted!','success');}}else{if(!res.ok)throw new Error('Decoding failed');const blob=await res.blob();const disp=res.headers.get('content-disposition')??'';const fname=disp.match(/filename=(.+)/)?.[1]??'extracted_file';const ct2=res.headers.get('content-type')??'';if(ct2.startsWith('audio/')){renderAudioResult('vid-dec-result-area',blob,fname);}else{renderImageResult('vid-dec-result-area',blob,fname);}showToast('File extracted!','success');} }catch(e){showToast(e.message,'error');}finally{setLoading('vid-dec',false);} }
+async function doTSEncode(){ const cover=document.getElementById('ts-cover').value.trim(); const secret=document.getElementById('ts-secret').value.trim(); if(!cover) return showToast('Please enter cover text.','error'); if(!secret) return showToast('Please enter a secret message.','error'); setLoading('ts-enc',true); try{ const res=await fetch(API+'/text/encode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cover_text:cover,secret})}); const data=await res.json(); if(!res.ok) throw new Error(data.detail||'Failed'); document.getElementById('ts-stego-output').textContent=data.stego_text; document.getElementById('ts-encode-result').style.display=''; showToast('Message hidden!','success'); }catch(e){showToast(e.message,'error');}finally{setLoading('ts-enc',false);} }
+async function doTSDecode(){ const stego=document.getElementById('ts-stego-input').value; if(!stego.trim()) return showToast('Please paste the stego text.','error'); setLoading('ts-dec',true); try{ const res=await fetch(API+'/text/decode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stego_text:stego})}); const data=await res.json(); if(!res.ok) throw new Error(data.detail||'Failed'); document.getElementById('ts-decoded-output').textContent=data.secret; document.getElementById('ts-decode-result').style.display=''; showToast('Message extracted!','success'); }catch(e){showToast(e.message,'error');}finally{setLoading('ts-dec',false);} }
+async function doCipher(){ const inputId=cipherMode==='encrypt'?'cipher-input':'cipher-input-dec'; const outputId=cipherMode==='encrypt'?'cipher-output':'cipher-output-dec'; const spinnerId=cipherMode==='encrypt'?'cipher-spinner':'cipher-spinner-dec'; const btnId=cipherMode==='encrypt'?'cipher-btn-text':'cipher-btn-text-dec'; const text=document.getElementById(inputId).value.trim(); if(!text) return showToast('Please enter some text.','error'); const cipher=document.getElementById('cipher-type').value; const shift=parseInt(document.getElementById('cipher-shift').value)||3; const key=document.getElementById('cipher-key').value.trim(); const rails=parseInt(document.getElementById('cipher-rails').value)||3; if((cipher==='vigenere'||cipher==='beaufort')&&!key) return showToast('This cipher requires a key.','error'); const btn=document.getElementById(btnId)?.closest('button'); const sp=document.getElementById(spinnerId); if(btn) btn.disabled=true; if(sp) sp.style.display='block'; try{ const res=await fetch(API+'/cipher/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,cipher,mode:cipherMode,key,shift,rails})}); const data=await res.json(); if(!res.ok) throw new Error(data.detail||'Failed'); document.getElementById(outputId).textContent=data.output; showToast(cipherMode==='encrypt'?'Encrypted!':'Decrypted!','success'); }catch(e){showToast(e.message,'error');}finally{if(btn)btn.disabled=false;if(sp)sp.style.display='none';} }
+function sendToStego(){ const output=document.getElementById('cipher-output').textContent; if(!output||output==='Output will appear after processing.') return showToast('No output to send.','error'); document.getElementById('ts-secret').value=output; document.querySelector('.sidebar-item[onclick*="text-stego"]').click(); showToast('Sent to Text Stego!','success'); }
+
+function renderTextResult(id,text){ document.getElementById(id).innerHTML=`<div class="result-box" id="${id}-text">${text}</div><div class="result-actions" style="margin-top:10px;"><button class="result-btn" onclick="copyResult('${id}-text')">Copy</button><button class="result-btn" onclick="downloadText('${id}-text','extracted_message.txt')">Download</button></div>`; }
+function renderAudioResult(id,blob,fname){ const url=URL.createObjectURL(blob); document.getElementById(id).innerHTML=`<div style="font-size:13px;color:var(--gray-500);margin-bottom:8px;">Hidden audio extracted:</div><audio controls src="${url}" style="width:100%;border-radius:6px;"></audio><div class="result-actions" style="margin-top:10px;"><a class="result-btn" href="${url}" download="${fname}">Download</a></div>`; }
+function renderImageResult(id,blob,fname){ const url=URL.createObjectURL(blob); document.getElementById(id).innerHTML=`<div style="font-size:13px;color:var(--gray-500);margin-bottom:8px;">Hidden image extracted:</div><img src="${url}" style="max-width:100%;border-radius:6px;border:1px solid var(--gray-200);" /><div class="result-actions" style="margin-top:10px;"><a class="result-btn" href="${url}" download="${fname}">Download</a></div>`; }
+function dlBlob(blob,fname){ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;a.click(); }
 function copyResult(id){ navigator.clipboard.writeText(document.getElementById(id)?.textContent??'').then(()=>showToast('Copied!','success')); }
-function downloadText(id,fname){ const blob=new Blob([document.getElementById(id)?.textContent??''],{type:'text/plain'});dlBlob(blob,fname); }
-async function loadHistory(){ const tbody=document.getElementById('history-tbody'); tbody.innerHTML='<tr><td colspan="5" class="empty-state">Loading…</td></tr>'; try{ const [encRes,decRes,sumRes]=await Promise.all([fetch(API+'/logs/encode?user_code='+currentUserCode),fetch(API+'/logs/decode?user_code='+currentUserCode),fetch(API+'/logs/summary?user_code='+currentUserCode)]); const [encData,decData,sumData]=await Promise.all([encRes.json(),decRes.json(),sumRes.json()]); const imgOps=(sumData.total_encodes??0)+(sumData.total_decodes??0); const audioOps=(sumData.total_audio_encodes??0)+(sumData.total_audio_decodes??0); const videoOps=encData.filter(r=>r.type?.startsWith('video')).length+decData.filter(r=>r.type?.startsWith('video')).length; document.getElementById('s-image').textContent=imgOps; document.getElementById('s-audio').textContent=audioOps; document.getElementById('s-video').textContent=videoOps; document.getElementById('s-cipher').textContent='—'; allHistoryRows=[...encData.map(r=>({...r,_dir:'enc'})),...decData.map(r=>({...r,_dir:'dec'}))].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)); renderHistory(allHistoryRows); }catch(e){ tbody.innerHTML='<tr><td colspan="5" class="empty-state">Could not load history. Is the server running?</td></tr>'; } }
-function renderHistory(rows){ const tbody=document.getElementById('history-tbody'); if(!rows.length){tbody.innerHTML='<tr><td colspan="5" class="empty-state">No operations yet.</td></tr>';return;} tbody.innerHTML=rows.map(r=>{ const t=r.type??''; let typeLabel,typeCls; if(t.startsWith('video')){typeLabel='Video';typeCls='type-video';}else if(t.startsWith('audio')){typeLabel='Audio';typeCls='type-audio';}else if(t.startsWith('cipher')){typeLabel='Cipher';typeCls='type-cipher';}else if(r._dir==='enc'){typeLabel='Img Enc';typeCls='type-encode';}else{typeLabel='Img Dec';typeCls='type-decode';} const details=r.message_length?`${r.message_length} chars`:(r.algorithm??t??'—'); const ok=r.status==='success'; const statusIcon=ok?'<span class="status-icon ok"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>':'<span class="status-icon fail"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>'; const time=r.timestamp?new Date(r.timestamp).toLocaleString():'—'; return `<tr><td><span class="type-badge ${typeCls}">${typeLabel}</span></td><td style="font-family:monospace;font-size:12px;">${r.filename??r.carrier??'—'}</td><td>${details}</td><td>${statusIcon}</td><td style="color:var(--gray-400);font-size:12px;">${time}</td></tr>`; }).join('');}
-function filterHistory(type,btn){ document.querySelectorAll('.filter-pill').forEach(p=>p.classList.remove('active')); btn.classList.add('active'); let filtered; if(type==='all')filtered=allHistoryRows; else if(type==='image')filtered=allHistoryRows.filter(r=>!r.type||(!r.type.startsWith('audio')&&!r.type.startsWith('video')&&!r.type.startsWith('cipher'))); else if(type==='audio')filtered=allHistoryRows.filter(r=>r.type?.startsWith('audio')); else if(type==='video')filtered=allHistoryRows.filter(r=>r.type?.startsWith('video')); else if(type==='cipher')filtered=allHistoryRows.filter(r=>r.type?.startsWith('cipher')); renderHistory(filtered); }
-function setLoading(tab,on){ const btnText=document.getElementById(tab+'-btn-text'); const spinner=document.getElementById(tab+'-spinner'); if(!btnText||!spinner)return; btnText.closest('button').disabled=on; spinner.style.display=on?'block':'none'; btnText.style.opacity=on?'0.6':'1'; }
+function downloadText(id,fname){ dlBlob(new Blob([document.getElementById(id)?.textContent??''],{type:'text/plain'}),fname); }
+
+async function loadHistory(){ const tbody=document.getElementById('history-tbody'); tbody.innerHTML='<tr><td colspan="5" class="empty-state">Loading…</td></tr>'; try{ const [encRes,decRes,sumRes]=await Promise.all([fetch(API+'/logs/encode?user_code='+currentUserCode),fetch(API+'/logs/decode?user_code='+currentUserCode),fetch(API+'/logs/summary?user_code='+currentUserCode)]); const [encData,decData,sumData]=await Promise.all([encRes.json(),decRes.json(),sumRes.json()]); const imgOps=(sumData.total_encodes??0)+(sumData.total_decodes??0); const audioOps=(sumData.total_audio_encodes??0)+(sumData.total_audio_decodes??0); const videoOps=encData.filter(r=>r.type?.startsWith('video')).length+decData.filter(r=>r.type?.startsWith('video')).length; document.getElementById('s-image').textContent=imgOps; document.getElementById('s-audio').textContent=audioOps; document.getElementById('s-video').textContent=videoOps; document.getElementById('s-total').textContent=imgOps+audioOps+videoOps; allHistoryRows=[...encData.map(r=>({...r,_dir:'enc'})),...decData.map(r=>({...r,_dir:'dec'}))].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)); renderHistory(allHistoryRows); }catch(e){ tbody.innerHTML='<tr><td colspan="5" class="empty-state">Could not load history.</td></tr>'; } }
+function renderHistory(rows){ const tbody=document.getElementById('history-tbody'); if(!rows.length){tbody.innerHTML='<tr><td colspan="5" class="empty-state">No operations yet.</td></tr>';return;} tbody.innerHTML=rows.map(r=>{ const t=r.type??''; let lbl,cls; if(t.startsWith('video')){lbl='Video';cls='type-video';}else if(t.startsWith('audio')){lbl='Audio';cls='type-audio';}else if(t.startsWith('cipher')){lbl='Cipher';cls='type-cipher';}else if(r._dir==='enc'){lbl='Img Enc';cls='type-encode';}else{lbl='Img Dec';cls='type-decode';} const details=r.message_length?`${r.message_length} chars`:(r.algorithm??t??'—'); const ok=r.status==='success'; const si=ok?'<span class="status-icon ok"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>':'<span class="status-icon fail"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>'; const time=r.timestamp?new Date(r.timestamp).toLocaleString():'—'; return `<tr><td><span class="type-badge ${cls}">${lbl}</span></td><td style="font-family:monospace;font-size:12px;">${r.filename??'—'}</td><td>${details}</td><td>${si}</td><td style="color:var(--gray-400);font-size:12px;">${time}</td></tr>`; }).join('');}
+function filterHistory(type,btn){ document.querySelectorAll('.filter-pill').forEach(p=>p.classList.remove('active')); btn.classList.add('active'); let f; if(type==='all')f=allHistoryRows; else if(type==='image')f=allHistoryRows.filter(r=>!r.type||(!r.type.startsWith('audio')&&!r.type.startsWith('video')&&!r.type.startsWith('cipher'))); else f=allHistoryRows.filter(r=>r.type?.startsWith(type)); renderHistory(f); }
+function setLoading(id,on){ const btnText=document.getElementById(id+'-btn-text'); const spinner=document.getElementById(id+'-spinner'); if(!btnText||!spinner)return; btnText.closest('button').disabled=on; spinner.style.display=on?'block':'none'; btnText.style.opacity=on?'0.6':'1'; }
 </script>
 </body>
 </html>
