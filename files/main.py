@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import HTMLResponse
 from routes import encode, decode, logs, audio_encode, audio_decode, video_encode, video_decode, cipher, text_stego
 import os
 app = FastAPI(title="Steganography Tool API", version="4.0.0")
@@ -29,8 +30,10 @@ def root():
 
 @app.get("/ui")
 def serve_frontend():
-    return FileResponse(
-        "index.html",
+    with open("index.html", "r", encoding="utf-8") as f:
+        content = f.read()
+    return HTMLResponse(
+        content=content,
         headers={"Cache-Control": "no-store, no-cache, must-revalidate"}
     )
 
