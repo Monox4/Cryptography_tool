@@ -633,7 +633,11 @@ function confirmRegister(){ loginWith(document.getElementById('new-hex-display')
 function doLogin(){ const c=document.getElementById('login-code-input').value.trim().toLowerCase(); if(c.length<8){document.getElementById('login-err').style.display='block';return;} document.getElementById('login-err').style.display='none'; loginWith(c); }
 function loginWith(code){ currentUserCode=code; document.getElementById('login-overlay').style.display='none'; document.getElementById('app').style.display=''; document.getElementById('nav-avatar').textContent=code.slice(0,2).toUpperCase(); document.getElementById('nav-code-display').textContent=code.slice(0,4)+'…'+code.slice(-4); updateCipherOptions(); }
 function doLogout(){ currentUserCode=null; document.getElementById('app').style.display='none'; document.getElementById('login-overlay').style.display='flex'; document.getElementById('login-code-input').value=''; showEnter(); }
-window.addEventListener('DOMContentLoaded',()=>{ updateCipherOptions(); });
+window.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('login-overlay').style.display='flex';
+  document.getElementById('app').style.display='none';
+  updateCipherOptions();
+});
 
 function showPage(name,btn){ document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active')); document.querySelectorAll('.sidebar-item').forEach(b=>b.classList.remove('active')); document.getElementById('page-'+name).classList.add('active'); btn.classList.add('active'); if(name==='history') loadHistory(); }
 
