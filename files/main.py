@@ -40,3 +40,12 @@ def debug():
     files = os.listdir(cwd)
     index_exists = os.path.exists("index.html")
     return {"cwd": cwd, "files": files, "index_exists": index_exists}
+@app.get("/debug2")
+def debug2():
+    with open("index.html", "r") as f:
+        content = f.read()
+    # Find the login-overlay line
+    for i, line in enumerate(content.split("\n")):
+        if "login-overlay" in line and "div id" in line:
+            return {"line_number": i, "content": line}
+    return {"error": "not found"}
