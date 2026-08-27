@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, RedirectResponse
 from routes import encode, decode, logs, audio_encode, audio_decode, video_encode, video_decode, cipher, text_stego
-
+import os
 app = FastAPI(title="Steganography Tool API", version="4.0.0")
 
 app.add_middleware(
@@ -29,4 +29,14 @@ def root():
 
 @app.get("/ui")
 def serve_frontend():
-    return FileResponse("index.html")
+    return FileResponse(
+        "index.html",
+        headers={"Cache-Control": "no-store, no-cache, must-revalidate"}
+    )
+
+@app.get("/debug")
+def debug():
+    cwd = os.getcwd()
+    files = os.listdir(cwd)
+    index_exists = os.path.exists("index.html")
+    return {"cwd": cwd, "files": files, "index_exists": index_exists}
