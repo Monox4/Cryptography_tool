@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Steganography Tool</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -12,11 +12,11 @@
     --gray-50: #F9FAFB; --gray-100: #F3F4F6; --gray-200: #E5E7EB;
     --gray-300: #D1D5DB; --gray-400: #9CA3AF; --gray-500: #6B7280;
     --gray-700: #374151; --gray-900: #111827;
-    --sidebar-w: 220px;
     --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-pill: 999px;
   }
   body { font-family: 'Inter', sans-serif; background: #fff; color: var(--gray-900); min-height: 100vh; }
 
+  /* LOGIN */
   #login-overlay { position: fixed; inset: 0; background: #fff; display: flex; align-items: center; justify-content: center; z-index: 999; }
   .login-card { width: 380px; padding: 40px 36px; border: 1px solid var(--gray-200); border-radius: 20px; box-shadow: 0 4px 32px rgba(0,0,0,0.06); text-align: center; }
   .login-icon { width: 52px; height: 52px; background: var(--blue); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: #fff; font-size: 22px; font-weight: 700; }
@@ -32,72 +32,63 @@
   .login-new { font-size: 12px; color: var(--gray-500); }
   .login-new a { color: var(--blue); cursor: pointer; text-decoration: none; font-weight: 500; }
   .hex-display { background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 14px; font-family: monospace; font-size: 18px; font-weight: 700; letter-spacing: 0.15em; color: var(--blue); margin: 16px 0; word-break: break-all; }
-  .login-copy-btn { padding: 8px 20px; border-radius: var(--radius-pill); border: 1.5px solid var(--blue); background: #fff; color: var(--blue); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.12s; margin-bottom: 16px; }
+  .login-copy-btn { padding: 8px 20px; border-radius: var(--radius-pill); border: 1.5px solid var(--blue); background: #fff; color: var(--blue); font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: 16px; }
   .login-copy-btn:hover { background: var(--blue-light); }
 
-  #app { display: none; min-height: 100vh; }
-
-  .topbar { position: fixed; top: 0; left: 0; right: 0; height: 52px; background: #fff; border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; padding: 0 20px; gap: 16px; z-index: 100; }
-  .topbar-brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; color: var(--gray-900); width: var(--sidebar-w); flex-shrink: 0; }
-  .topbar-icon { width: 28px; height: 28px; background: var(--blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 700; }
-  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
-  .nav-user { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--gray-500); }
-  .nav-user .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--blue-light); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--blue); font-family: monospace; }
-  .logout-btn { padding: 5px 12px; border-radius: var(--radius-pill); border: 1px solid var(--gray-200); background: #fff; font-size: 12px; font-weight: 500; color: var(--gray-500); cursor: pointer; transition: all 0.12s; }
+  /* NAV */
+  nav { display: flex; align-items: center; padding: 0 24px; height: 52px; border-bottom: 1px solid var(--gray-200); }
+  .nav-brand { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; color: var(--gray-900); text-decoration: none; }
+  .nav-brand-icon { width: 28px; height: 28px; background: var(--blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 700; }
+  .nav-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .nav-user { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--gray-500); }
+  .nav-user .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--blue-light); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--blue); font-family: monospace; }
+  .logout-btn { padding: 6px 14px; border-radius: var(--radius-pill); border: 1px solid var(--gray-200); background: #fff; font-size: 12px; font-weight: 500; color: var(--gray-500); cursor: pointer; }
   .logout-btn:hover { background: var(--gray-100); }
 
-  .sidebar { position: fixed; top: 52px; left: 0; bottom: 0; width: var(--sidebar-w); background: var(--gray-50); border-right: 1px solid var(--gray-200); overflow-y: auto; padding: 12px 8px; z-index: 90; }
-  .sidebar-section { margin-bottom: 20px; }
-  .sidebar-label { font-size: 10px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.08em; padding: 0 8px; margin-bottom: 4px; }
-  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500; color: var(--gray-700); cursor: pointer; transition: all 0.12s; border: none; background: none; width: 100%; text-align: left; }
-  .sidebar-item:hover { background: var(--gray-200); }
-  .sidebar-item.active { background: var(--blue-light); color: var(--blue); font-weight: 600; }
-  .sidebar-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+  /* TAB BAR */
+  .tab-bar { display: flex; gap: 8px; padding: 12px 24px; border-bottom: 1px solid var(--gray-200); flex-wrap: wrap; }
+  .tab-btn { padding: 7px 16px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 500; cursor: pointer; border: none; background: var(--gray-100); color: var(--gray-500); transition: all 0.15s; }
+  .tab-btn.active { background: var(--blue); color: #fff; }
+  .tab-btn:hover:not(.active) { background: var(--gray-200); color: var(--gray-700); }
 
-  .main-content { margin-left: var(--sidebar-w); margin-top: 52px; padding: 28px 32px; max-width: 960px; }
-  .section-title { font-size: 20px; font-weight: 700; margin-bottom: 2px; }
-  .section-subtitle { font-size: 13px; color: var(--gray-500); margin-bottom: 20px; }
+  /* MAIN */
+  main { padding: 32px 24px; max-width: 900px; }
+  .page-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .page-subtitle { font-size: 13px; color: var(--gray-500); margin-bottom: 24px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
 
-  .inner-tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 1px solid var(--gray-200); }
-  .inner-tab { padding: 8px 18px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; background: none; color: var(--gray-500); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; }
-  .inner-tab:hover { color: var(--gray-900); }
-  .inner-tab.active { color: var(--blue); border-bottom-color: var(--blue); font-weight: 600; }
-  .inner-pane { display: none; }
-  .inner-pane.active { display: block; }
-
-  .page-section { display: none; }
-  .page-section.active { display: block; }
-
+  /* CARDS */
   .card { border: 1px solid var(--gray-200); border-radius: var(--radius-lg); padding: 20px; background: #fff; }
   .card-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
-  .card-subtitle { font-size: 12px; color: var(--gray-400); margin-bottom: 14px; }
+  .card-subtitle { font-size: 12px; color: var(--gray-400); margin-bottom: 16px; }
   .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); display: inline-block; }
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
-  .col-stack { display: flex; flex-direction: column; gap: 16px; }
 
-  .dropzone { border: 1.5px dashed var(--gray-300); border-radius: var(--radius-md); padding: 32px 20px; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; position: relative; }
+  /* DROPZONE */
+  .dropzone { border: 1.5px dashed var(--gray-300); border-radius: var(--radius-md); padding: 36px 20px; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; position: relative; }
   .dropzone:hover, .dropzone.dragover { border-color: var(--blue); background: var(--blue-light); }
   .dropzone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-  .dropzone-icon { width: 34px; height: 34px; margin: 0 auto 10px; color: var(--blue); }
+  .dropzone-icon { width: 36px; height: 36px; margin: 0 auto 10px; color: var(--blue); }
   .dropzone-label { font-size: 14px; font-weight: 500; color: var(--gray-700); margin-bottom: 4px; }
-  .dropzone-hint { font-size: 12px; color: var(--gray-400); margin-bottom: 12px; }
-  .browse-btn { padding: 6px 16px; border-radius: var(--radius-pill); border: 1px solid var(--gray-300); background: #fff; font-size: 13px; font-weight: 500; color: var(--gray-700); cursor: pointer; }
+  .dropzone-hint { font-size: 12px; color: var(--gray-400); margin-bottom: 14px; }
+  .browse-btn { padding: 7px 18px; border-radius: var(--radius-pill); border: 1px solid var(--gray-300); background: #fff; font-size: 13px; font-weight: 500; color: var(--gray-700); cursor: pointer; }
   .browse-btn:hover { background: var(--gray-100); }
-  .image-preview { width: 120px; height: 90px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--gray-200); margin: 10px auto 0; display: none; }
-  .image-preview.visible { display: block; }
-  .audio-preview { width: 100%; margin-top: 10px; display: none; border-radius: var(--radius-sm); }
+  .image-preview { width: 120px; height: 90px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--gray-200); margin-top: 12px; display: none; }
+  .image-preview.visible { display: block; margin: 12px auto 0; }
+  .audio-preview { width: 100%; margin-top: 12px; display: none; border-radius: var(--radius-sm); }
   .audio-preview.visible { display: block; }
-  .video-preview { width: 100%; margin-top: 10px; display: none; border-radius: var(--radius-sm); max-height: 160px; }
+  .video-preview { width: 100%; margin-top: 12px; display: none; border-radius: var(--radius-sm); max-height: 180px; }
   .video-preview.visible { display: block; }
-  .file-name { font-size: 11px; color: var(--gray-400); margin-top: 6px; text-align: center; display: none; font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-name { font-size: 12px; color: var(--gray-500); margin-top: 6px; text-align: center; display: none; font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .file-name.visible { display: block; }
 
-  .mode-row { display: flex; gap: 8px; margin-bottom: 14px; }
-  .mode-pill { flex: 1; padding: 8px; border-radius: var(--radius-sm); border: 1.5px solid var(--gray-200); background: #fff; font-size: 13px; font-weight: 500; color: var(--gray-500); cursor: pointer; transition: all 0.12s; text-align: center; }
+  /* MODE PILLS */
+  .mode-row { display: flex; gap: 8px; margin-bottom: 16px; }
+  .mode-pill { flex: 1; padding: 9px; border-radius: var(--radius-sm); border: 1.5px solid var(--gray-200); background: #fff; font-size: 13px; font-weight: 500; color: var(--gray-500); cursor: pointer; transition: all 0.12s; text-align: center; }
   .mode-pill.active { border-color: var(--blue); background: var(--blue-light); color: var(--blue); }
 
+  /* FORM */
   label.field-label { display: block; font-size: 13px; font-weight: 500; color: var(--gray-700); margin-bottom: 6px; }
-  textarea { width: 100%; border: 1px solid var(--gray-200); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 13px; font-family: 'Inter', sans-serif; color: var(--gray-900); resize: vertical; background: var(--gray-50); outline: none; transition: border-color 0.15s; min-height: 90px; }
+  textarea { width: 100%; border: 1px solid var(--gray-200); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 13px; font-family: 'Inter', sans-serif; color: var(--gray-900); resize: vertical; background: var(--gray-50); outline: none; transition: border-color 0.15s; min-height: 100px; }
   textarea:focus { border-color: var(--blue); background: #fff; }
   textarea::placeholder { color: var(--gray-400); }
   input[type=text], input[type=password], input[type=number] { width: 100%; border: 1px solid var(--gray-200); border-radius: var(--radius-sm); padding: 8px 12px; font-size: 13px; font-family: 'Inter', sans-serif; color: var(--gray-900); background: var(--gray-50); outline: none; transition: border-color 0.15s; }
@@ -105,77 +96,92 @@
   input::placeholder { color: var(--gray-400); }
   .field-group { margin-bottom: 14px; }
   select.cipher-select { width: 100%; border: 1px solid var(--gray-200); border-radius: var(--radius-sm); padding: 9px 12px; font-size: 13px; font-family: 'Inter', sans-serif; color: var(--gray-900); background: var(--gray-50); outline: none; cursor: pointer; }
-  select.cipher-select:focus { border-color: var(--blue); background: #fff; }
   .cipher-extra { margin-top: 12px; display: none; }
   .cipher-extra.visible { display: block; }
 
-  .algo-group { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  /* ALGO PILLS */
+  .algo-group { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
   .algo-pill { padding: 5px 12px; border-radius: var(--radius-pill); border: 1px solid var(--gray-200); background: #fff; font-size: 12px; font-weight: 500; color: var(--gray-700); cursor: pointer; transition: all 0.12s; }
   .algo-pill.selected { background: var(--gray-900); color: #fff; border-color: var(--gray-900); }
 
-  .toggle-row { display: flex; align-items: flex-start; justify-content: space-between; padding: 12px 0; border-top: 1px solid var(--gray-100); }
+  /* TOGGLES */
+  .toggle-row { display: flex; align-items: flex-start; justify-content: space-between; padding: 14px 0; border-top: 1px solid var(--gray-100); }
+  .toggle-info { flex: 1; padding-right: 12px; }
   .toggle-info strong { font-size: 13px; font-weight: 500; display: block; margin-bottom: 2px; }
   .toggle-info span { font-size: 11px; color: var(--gray-400); }
-  .toggle { position: relative; width: 38px; height: 21px; flex-shrink: 0; }
+  .toggle { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
   .toggle input { opacity: 0; width: 0; height: 0; }
   .toggle-slider { position: absolute; inset: 0; background: var(--gray-300); border-radius: var(--radius-pill); cursor: pointer; transition: background 0.2s; }
-  .toggle-slider::before { content: ''; position: absolute; width: 15px; height: 15px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
+  .toggle-slider::before { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
   .toggle input:checked + .toggle-slider { background: var(--blue); }
-  .toggle input:checked + .toggle-slider::before { transform: translateX(17px); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
 
-  .capacity-row { padding-top: 12px; border-top: 1px solid var(--gray-100); }
-  .capacity-header { display: flex; justify-content: space-between; font-size: 12px; font-weight: 500; margin-bottom: 6px; color: var(--gray-700); }
+  /* CAPACITY */
+  .capacity-row { padding-top: 14px; border-top: 1px solid var(--gray-100); }
+  .capacity-header { display: flex; justify-content: space-between; font-size: 12px; font-weight: 500; margin-bottom: 8px; color: var(--gray-700); }
   .capacity-header span { color: var(--gray-400); font-weight: 400; }
-  .capacity-track { height: 5px; border-radius: var(--radius-pill); background: var(--gray-100); overflow: hidden; }
+  .capacity-track { height: 6px; border-radius: var(--radius-pill); background: var(--gray-100); overflow: hidden; }
   .capacity-fill { height: 100%; border-radius: var(--radius-pill); background: var(--blue); transition: width 0.3s; width: 0%; }
 
-  .action-btn { width: 100%; padding: 14px; border-radius: var(--radius-pill); background: var(--blue); color: #fff; font-size: 15px; font-weight: 600; border: none; cursor: pointer; margin-top: 16px; transition: background 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  /* ACTION BTN */
+  .action-btn { width: 100%; padding: 16px; border-radius: var(--radius-pill); background: var(--blue); color: #fff; font-size: 16px; font-weight: 600; border: none; cursor: pointer; margin-top: 16px; transition: background 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; max-width: 900px; }
   .action-btn:hover { background: var(--blue-hover); }
   .action-btn:disabled { background: var(--gray-300); cursor: not-allowed; }
 
+  /* RESULT */
   .result-box { background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 14px; font-size: 13px; color: var(--gray-700); min-height: 80px; line-height: 1.6; word-break: break-word; white-space: pre-wrap; }
-  .result-actions { display: flex; gap: 8px; margin-top: 10px; }
-  .result-btn { flex: 1; padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--gray-200); background: #fff; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--gray-700); text-align: center; text-decoration: none; display: block; transition: background 0.12s; }
+  .result-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .result-btn { flex: 1; padding: 9px; border-radius: var(--radius-sm); border: 1px solid var(--gray-200); background: #fff; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--gray-700); text-align: center; text-decoration: none; display: block; transition: background 0.12s; }
   .result-btn:hover { background: var(--gray-100); }
 
+  /* META */
   .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
-  .meta-cell { background: var(--gray-50); border-radius: var(--radius-sm); padding: 10px 12px; }
+  .meta-cell { background: var(--gray-50); border-radius: var(--radius-sm); padding: 12px 14px; }
   .meta-cell-label { font-size: 11px; color: var(--gray-400); margin-bottom: 4px; }
-  .meta-cell-value { font-size: 14px; font-weight: 600; color: var(--gray-900); }
+  .meta-cell-value { font-size: 15px; font-weight: 600; color: var(--gray-900); }
 
+  /* SIZE WARNING */
   .size-warning { font-size: 11px; color: #EA580C; margin-top: 6px; display: none; }
   .size-warning.visible { display: block; }
 
-  .summary-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
-  .summary-card { border: 1px solid var(--gray-200); border-radius: var(--radius-lg); padding: 14px 16px; }
-  .summary-card-label { font-size: 11px; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
-  .summary-card-value { font-size: 24px; font-weight: 700; }
-  .history-filters { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
-  .filter-pill { padding: 5px 14px; border-radius: var(--radius-pill); border: 1px solid var(--gray-200); background: #fff; font-size: 13px; font-weight: 500; color: var(--gray-500); cursor: pointer; transition: all 0.12s; }
+  /* HISTORY */
+  .summary-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+  .summary-card { border: 1px solid var(--gray-200); border-radius: var(--radius-lg); padding: 16px 18px; }
+  .summary-card-label { font-size: 11px; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .summary-card-value { font-size: 26px; font-weight: 700; color: var(--gray-900); }
+  .history-filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .filter-pill { padding: 6px 14px; border-radius: var(--radius-pill); border: 1px solid var(--gray-200); background: #fff; font-size: 13px; font-weight: 500; color: var(--gray-500); cursor: pointer; transition: all 0.12s; }
   .filter-pill.active { background: var(--blue); color: #fff; border-color: var(--blue); }
   .history-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .history-table th { text-align: left; padding: 9px 12px; font-size: 11px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--gray-200); background: var(--gray-50); }
-  .history-table td { padding: 11px 12px; border-bottom: 1px solid var(--gray-100); color: var(--gray-700); vertical-align: middle; }
+  .history-table th { text-align: left; padding: 10px 14px; font-size: 11px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--gray-200); background: var(--gray-50); }
+  .history-table td { padding: 12px 14px; border-bottom: 1px solid var(--gray-100); color: var(--gray-700); vertical-align: middle; }
   .history-table tr:last-child td { border-bottom: none; }
   .history-table tr:hover td { background: var(--gray-50); }
-  .type-badge { display: inline-block; padding: 2px 8px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 600; text-transform: uppercase; }
+  .type-badge { display: inline-block; padding: 3px 10px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 600; text-transform: uppercase; }
   .type-encode { background: #EFF6FF; color: #2563EB; }
   .type-decode { background: #F0FDF4; color: #16A34A; }
   .type-audio  { background: #FFF7ED; color: #EA580C; }
   .type-video  { background: #F5F3FF; color: #7C3AED; }
   .type-cipher { background: #FFF1F2; color: #E11D48; }
-  .status-icon { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; }
+  .status-icon { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; }
   .status-icon.ok   { background: #DCFCE7; color: #16A34A; }
   .status-icon.fail { background: #FEE2E2; color: #DC2626; }
-  .status-icon svg  { width: 11px; height: 11px; }
-  .empty-state { text-align: center; padding: 36px 20px; color: var(--gray-400); font-size: 13px; }
+  .status-icon svg  { width: 12px; height: 12px; }
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--gray-400); font-size: 13px; }
 
-  .spinner { width: 17px; height: 17px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; display: none; }
+  /* SPINNER */
+  .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; display: none; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--gray-900); color: #fff; padding: 11px 16px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500; transform: translateY(80px); opacity: 0; transition: all 0.25s; z-index: 9999; }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--gray-900); color: #fff; padding: 12px 18px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500; transform: translateY(80px); opacity: 0; transition: all 0.25s; z-index: 9999; }
   .toast.show { transform: translateY(0); opacity: 1; }
   .toast.success { background: #059669; }
   .toast.error   { background: #DC2626; }
+
+  .tab-section { display: none; }
+  .tab-section.active { display: block; }
+  .col-stack { display: flex; flex-direction: column; gap: 16px; }
 </style>
 </head>
 <body>
@@ -205,67 +211,42 @@
 <!-- APP -->
 <div id="app" style="display:none;">
 
-<div class="topbar">
-  <div class="topbar-brand">
-    <div class="topbar-icon">S</div>
+<nav>
+  <a class="nav-brand" href="#">
+    <div class="nav-brand-icon">S</div>
     Steganography Tool
-  </div>
-  <div class="topbar-right">
+  </a>
+  <div class="nav-right">
     <div class="nav-user">
       <div class="avatar" id="nav-avatar">??</div>
-      <span id="nav-code-display" style="font-family:monospace;"></span>
+      <span id="nav-code-display" style="font-family:monospace; font-size:12px;"></span>
     </div>
     <button class="logout-btn" onclick="doLogout()">Sign out</button>
   </div>
+</nav>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('image',this)">Image</button>
+  <button class="tab-btn" onclick="switchTab('audio',this)">Audio</button>
+  <button class="tab-btn" onclick="switchTab('video',this)">Video</button>
+  <button class="tab-btn" onclick="switchTab('text-stego',this)">Text Stego</button>
+  <button class="tab-btn" onclick="switchTab('cipher',this)">Text Cipher</button>
+  <button class="tab-btn" onclick="switchTab('history',this)">History</button>
 </div>
 
-<div class="sidebar">
-  <div class="sidebar-section">
-    <div class="sidebar-label">Steganography</div>
-    <button class="sidebar-item active" onclick="showPage('image',this)">
-      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-      Image
-    </button>
-    <button class="sidebar-item" onclick="showPage('audio',this)">
-      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-      Audio
-    </button>
-    <button class="sidebar-item" onclick="showPage('video',this)">
-      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-      Video
-    </button>
-    <button class="sidebar-item" onclick="showPage('text-stego',this)">
-      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      Text Stego
-    </button>
-  </div>
-  <div class="sidebar-section">
-    <div class="sidebar-label">Cryptography</div>
-    <button class="sidebar-item" onclick="showPage('cipher',this)">
-      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      Text Cipher
-    </button>
-  </div>
-  <div class="sidebar-section">
-    <div class="sidebar-label">Account</div>
-    <button class="sidebar-item" onclick="showPage('history',this)">
-      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      History
-    </button>
-  </div>
-</div>
-
-<div class="main-content">
+<main>
 
 <!-- IMAGE -->
-<div id="page-image" class="page-section active">
-  <div class="section-title">Image Steganography</div>
-  <div class="section-subtitle">Hide secret messages inside images using LSB, DCT, or DWT encoding</div>
-  <div class="inner-tabs">
-    <button class="inner-tab active" onclick="switchInner('image','encode',this)">Encode</button>
-    <button class="inner-tab" onclick="switchInner('image','decode',this)">Decode</button>
+<div id="tab-image" class="tab-section active">
+  <div class="page-title">Image Steganography</div>
+  <div class="page-subtitle">Hide secret messages inside images using LSB, DCT, or DWT encoding</div>
+  <div class="mode-row">
+    <button class="mode-pill active" id="img-mode-encode" onclick="setImgMode('encode')">Encode</button>
+    <button class="mode-pill" id="img-mode-decode" onclick="setImgMode('decode')">Decode</button>
   </div>
-  <div id="image-encode" class="inner-pane active">
+
+  <!-- Image Encode -->
+  <div id="img-encode-area">
     <div class="two-col">
       <div class="card">
         <div class="card-title">Carrier Image</div>
@@ -304,7 +285,9 @@
     </div>
     <button class="action-btn" onclick="doImgEncode()"><span id="img-enc-btn-text">Encode Message</span><div class="spinner" id="img-enc-spinner"></div></button>
   </div>
-  <div id="image-decode" class="inner-pane">
+
+  <!-- Image Decode -->
+  <div id="img-decode-area" style="display:none;">
     <div class="two-col">
       <div class="card">
         <div class="dropzone" id="img-dec-dropzone">
@@ -346,14 +329,16 @@
 </div>
 
 <!-- AUDIO -->
-<div id="page-audio" class="page-section">
-  <div class="section-title">Audio Steganography</div>
-  <div class="section-subtitle">Hide text or audio files inside WAV or FLAC carrier files</div>
-  <div class="inner-tabs">
-    <button class="inner-tab active" onclick="switchInner('audio','encode',this)">Encode</button>
-    <button class="inner-tab" onclick="switchInner('audio','decode',this)">Decode</button>
+<div id="tab-audio" class="tab-section">
+  <div class="page-title">Audio Steganography</div>
+  <div class="page-subtitle">Hide text or audio files inside WAV or FLAC carrier files</div>
+  <div class="mode-row">
+    <button class="mode-pill active" id="aud-mode-encode" onclick="setAudMode('encode')">Encode</button>
+    <button class="mode-pill" id="aud-mode-decode" onclick="setAudMode('decode')">Decode</button>
   </div>
-  <div id="audio-encode" class="inner-pane active">
+
+  <!-- Audio Encode -->
+  <div id="aud-encode-area">
     <div class="mode-row">
       <button class="mode-pill active" id="aud-enc-mode-text" onclick="setAudEncMode('text')">Hide Text</button>
       <button class="mode-pill" id="aud-enc-mode-audio" onclick="setAudEncMode('audio')">Hide Audio</button>
@@ -398,7 +383,9 @@
     </div>
     <button class="action-btn" onclick="doAudEncode()"><span id="aud-enc-btn-text">Encode into Audio</span><div class="spinner" id="aud-enc-spinner"></div></button>
   </div>
-  <div id="audio-decode" class="inner-pane">
+
+  <!-- Audio Decode -->
+  <div id="aud-decode-area" style="display:none;">
     <div class="two-col">
       <div class="card">
         <div class="dropzone">
@@ -419,14 +406,16 @@
 </div>
 
 <!-- VIDEO -->
-<div id="page-video" class="page-section">
-  <div class="section-title">Video Steganography</div>
-  <div class="section-subtitle">Hide text, images, or audio inside MP4 video files (max 50MB)</div>
-  <div class="inner-tabs">
-    <button class="inner-tab active" onclick="switchInner('video','encode',this)">Encode</button>
-    <button class="inner-tab" onclick="switchInner('video','decode',this)">Decode</button>
+<div id="tab-video" class="tab-section">
+  <div class="page-title">Video Steganography</div>
+  <div class="page-subtitle">Hide text, images, or audio inside MP4 video files (max 50MB)</div>
+  <div class="mode-row">
+    <button class="mode-pill active" id="vid-mode-encode" onclick="setVidMode('encode')">Encode</button>
+    <button class="mode-pill" id="vid-mode-decode" onclick="setVidMode('decode')">Decode</button>
   </div>
-  <div id="video-encode" class="inner-pane active">
+
+  <!-- Video Encode -->
+  <div id="vid-encode-area">
     <div class="mode-row">
       <button class="mode-pill active" id="vid-enc-mode-text" onclick="setVidEncMode('text')">Hide Text</button>
       <button class="mode-pill" id="vid-enc-mode-image" onclick="setVidEncMode('image')">Hide Image</button>
@@ -484,7 +473,9 @@
     </div>
     <button class="action-btn" onclick="doVidEncode()"><span id="vid-enc-btn-text">Encode into Video</span><div class="spinner" id="vid-enc-spinner"></div></button>
   </div>
-  <div id="video-decode" class="inner-pane">
+
+  <!-- Video Decode -->
+  <div id="vid-decode-area" style="display:none;">
     <div class="two-col">
       <div class="card">
         <div class="dropzone">
@@ -505,14 +496,14 @@
 </div>
 
 <!-- TEXT STEGO -->
-<div id="page-text-stego" class="page-section">
-  <div class="section-title">Text Steganography</div>
-  <div class="section-subtitle">Hide secret messages inside cover text using invisible zero-width characters</div>
-  <div class="inner-tabs">
-    <button class="inner-tab active" onclick="switchInner('text-stego','encode',this)">Hide Message</button>
-    <button class="inner-tab" onclick="switchInner('text-stego','decode',this)">Extract Message</button>
+<div id="tab-text-stego" class="tab-section">
+  <div class="page-title">Text Steganography</div>
+  <div class="page-subtitle">Hide secret messages inside cover text using invisible zero-width characters</div>
+  <div class="mode-row">
+    <button class="mode-pill active" id="ts-mode-encode" onclick="setTSMode('encode')">Hide Message</button>
+    <button class="mode-pill" id="ts-mode-decode" onclick="setTSMode('decode')">Extract Message</button>
   </div>
-  <div id="text-stego-encode" class="inner-pane active">
+  <div id="ts-encode-area">
     <div class="two-col">
       <div class="card"><div class="card-title">Cover Text</div><div class="card-subtitle">Visible text that carries the hidden message</div><textarea id="ts-cover" placeholder="Enter any normal-looking text here..." rows="8" autocomplete="off"></textarea></div>
       <div class="card"><div class="card-title">Secret Message</div><div class="card-subtitle">Hidden invisibly inside the cover text</div><textarea id="ts-secret" placeholder="Enter the secret message to hide..." rows="8" autocomplete="off"></textarea></div>
@@ -522,7 +513,7 @@
       <div class="card"><div class="card-title">Stego Text</div><div class="card-subtitle">Looks identical to your cover text but carries the hidden message</div><div class="result-box" id="ts-stego-output"></div><div class="result-actions"><button class="result-btn" onclick="copyResult('ts-stego-output')">Copy</button><button class="result-btn" onclick="downloadText('ts-stego-output','stego_text.txt')">Download</button></div></div>
     </div>
   </div>
-  <div id="text-stego-decode" class="inner-pane">
+  <div id="ts-decode-area" style="display:none;">
     <div class="card"><div class="card-title">Stego Text</div><div class="card-subtitle">Paste the text containing the hidden message</div><textarea id="ts-stego-input" placeholder="Paste the stego text here..." rows="8" autocomplete="off"></textarea></div>
     <button class="action-btn" onclick="doTSDecode()"><span id="ts-dec-btn-text">Extract Hidden Message</span><div class="spinner" id="ts-dec-spinner"></div></button>
     <div id="ts-decode-result" style="display:none;margin-top:16px;">
@@ -532,66 +523,50 @@
 </div>
 
 <!-- CIPHER -->
-<div id="page-cipher" class="page-section">
-  <div class="section-title">Text Cipher</div>
-  <div class="section-subtitle">Encrypt or decrypt text using classical ciphers</div>
-  <div class="inner-tabs">
-    <button class="inner-tab active" onclick="setCipherMode('encrypt');switchInner('cipher','encrypt',this)">Encrypt</button>
-    <button class="inner-tab" onclick="setCipherMode('decrypt');switchInner('cipher','decrypt',this)">Decrypt</button>
+<div id="tab-cipher" class="tab-section">
+  <div class="page-title">Text Cipher</div>
+  <div class="page-subtitle">Encrypt or decrypt text using classical ciphers</div>
+  <div class="mode-row">
+    <button class="mode-pill active" id="cipher-mode-encrypt" onclick="setCipherMode('encrypt')">Encrypt</button>
+    <button class="mode-pill" id="cipher-mode-decrypt" onclick="setCipherMode('decrypt')">Decrypt</button>
   </div>
-  <div id="cipher-encrypt" class="inner-pane active">
-    <div class="two-col">
-      <div class="col-stack">
-        <div class="card"><div class="card-title">Input Text</div><textarea id="cipher-input" placeholder="Enter text to encrypt..." rows="6" autocomplete="off"></textarea></div>
-        <div class="card">
-          <div class="card-title"><span class="dot"></span> Cipher Settings</div>
-          <div class="field-group" style="margin-top:8px;"><label class="field-label">Cipher</label>
-            <select class="cipher-select" id="cipher-type" onchange="updateCipherOptions()">
-              <option value="caesar">Caesar Cipher</option>
-              <option value="vigenere">Vigenère Cipher</option>
-              <option value="rot13">ROT13</option>
-              <option value="atbash">Atbash</option>
-              <option value="railfence">Rail Fence</option>
-              <option value="beaufort">Beaufort Cipher</option>
-            </select>
-          </div>
-          <div class="cipher-extra" id="cipher-shift-wrap"><label class="field-label">Shift (1–25)</label><input type="number" id="cipher-shift" value="3" min="1" max="25" /></div>
-          <div class="cipher-extra" id="cipher-key-wrap"><label class="field-label">Key</label><input type="text" id="cipher-key" placeholder="Letters only" autocomplete="off" /></div>
-          <div class="cipher-extra" id="cipher-rails-wrap"><label class="field-label">Rails (2–10)</label><input type="number" id="cipher-rails" value="3" min="2" max="10" /></div>
+  <div class="two-col">
+    <div class="col-stack">
+      <div class="card"><div class="card-title">Input Text</div><textarea id="cipher-input" placeholder="Enter text to process..." rows="6" autocomplete="off"></textarea></div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span> Cipher Settings</div>
+        <div class="field-group" style="margin-top:8px;"><label class="field-label">Cipher</label>
+          <select class="cipher-select" id="cipher-type" onchange="updateCipherOptions()">
+            <option value="caesar">Caesar Cipher</option>
+            <option value="vigenere">Vigenère Cipher</option>
+            <option value="rot13">ROT13</option>
+            <option value="atbash">Atbash</option>
+            <option value="railfence">Rail Fence</option>
+            <option value="beaufort">Beaufort Cipher</option>
+          </select>
         </div>
-      </div>
-      <div class="card" style="min-height:280px;">
-        <div class="card-title">Output</div>
-        <div class="result-box" id="cipher-output" style="min-height:160px;">Output will appear after processing.</div>
-        <div class="result-actions" style="margin-top:10px;">
-          <button class="result-btn" onclick="copyResult('cipher-output')">Copy</button>
-          <button class="result-btn" onclick="downloadText('cipher-output','cipher_output.txt')">Download</button>
-          <button class="result-btn" onclick="sendToStego()">→ Text Stego</button>
-        </div>
+        <div class="cipher-extra" id="cipher-shift-wrap"><label class="field-label">Shift (1–25)</label><input type="number" id="cipher-shift" value="3" min="1" max="25" /></div>
+        <div class="cipher-extra" id="cipher-key-wrap"><label class="field-label">Key</label><input type="text" id="cipher-key" placeholder="Letters only" autocomplete="off" /></div>
+        <div class="cipher-extra" id="cipher-rails-wrap"><label class="field-label">Rails (2–10)</label><input type="number" id="cipher-rails" value="3" min="2" max="10" /></div>
       </div>
     </div>
-    <button class="action-btn" onclick="doCipher()"><span id="cipher-btn-text">Encrypt Text</span><div class="spinner" id="cipher-spinner"></div></button>
-  </div>
-  <div id="cipher-decrypt" class="inner-pane">
-    <div class="two-col">
-      <div class="card"><div class="card-title">Input Text</div><textarea id="cipher-input-dec" placeholder="Enter text to decrypt..." rows="6" autocomplete="off"></textarea></div>
-      <div class="card" style="min-height:280px;">
-        <div class="card-title">Output</div>
-        <div class="result-box" id="cipher-output-dec" style="min-height:160px;">Output will appear after processing.</div>
-        <div class="result-actions" style="margin-top:10px;">
-          <button class="result-btn" onclick="copyResult('cipher-output-dec')">Copy</button>
-          <button class="result-btn" onclick="downloadText('cipher-output-dec','decrypted_output.txt')">Download</button>
-        </div>
+    <div class="card" style="min-height:280px;">
+      <div class="card-title">Output</div>
+      <div class="result-box" id="cipher-output" style="min-height:160px;">Output will appear after processing.</div>
+      <div class="result-actions" style="margin-top:10px;">
+        <button class="result-btn" onclick="copyResult('cipher-output')">Copy</button>
+        <button class="result-btn" onclick="downloadText('cipher-output','cipher_output.txt')">Download</button>
+        <button class="result-btn" onclick="sendToStego()">→ Text Stego</button>
       </div>
     </div>
-    <button class="action-btn" onclick="doCipher()"><span id="cipher-btn-text-dec">Decrypt Text</span><div class="spinner" id="cipher-spinner-dec"></div></button>
   </div>
+  <button class="action-btn" onclick="doCipher()"><span id="cipher-btn-text">Process Text</span><div class="spinner" id="cipher-spinner"></div></button>
 </div>
 
 <!-- HISTORY -->
-<div id="page-history" class="page-section">
-  <div class="section-title">History</div>
-  <div class="section-subtitle">All operations tied to your access code</div>
+<div id="tab-history" class="tab-section">
+  <div class="page-title">History</div>
+  <div class="page-subtitle">All operations tied to your access code</div>
   <div class="summary-row">
     <div class="summary-card"><div class="summary-card-label">Image Ops</div><div class="summary-card-value" id="s-image">—</div></div>
     <div class="summary-card"><div class="summary-card-label">Audio Ops</div><div class="summary-card-value" id="s-audio">—</div></div>
@@ -613,7 +588,7 @@
   </div>
 </div>
 
-</div>
+</main>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -625,6 +600,7 @@ let audEncMode      = 'text';
 let vidEncMode      = 'text';
 let cipherMode      = 'encrypt';
 
+// AUTH
 function generateHex(len=16){ return Array.from(crypto.getRandomValues(new Uint8Array(len))).map(b=>b.toString(16).padStart(2,'0')).join(''); }
 function showEnter(){ document.getElementById('login-step-enter').style.display=''; document.getElementById('login-step-register').style.display='none'; }
 function showRegister(){ const c=generateHex(); document.getElementById('new-hex-display').textContent=c; document.getElementById('new-hex-display').dataset.code=c; document.getElementById('login-step-enter').style.display='none'; document.getElementById('login-step-register').style.display=''; }
@@ -633,45 +609,64 @@ function confirmRegister(){ loginWith(document.getElementById('new-hex-display')
 function doLogin(){ const c=document.getElementById('login-code-input').value.trim().toLowerCase(); if(c.length<8){document.getElementById('login-err').style.display='block';return;} document.getElementById('login-err').style.display='none'; loginWith(c); }
 function loginWith(code){ currentUserCode=code; document.getElementById('login-overlay').style.display='none'; document.getElementById('app').style.display=''; document.getElementById('nav-avatar').textContent=code.slice(0,2).toUpperCase(); document.getElementById('nav-code-display').textContent=code.slice(0,4)+'…'+code.slice(-4); updateCipherOptions(); }
 function doLogout(){ currentUserCode=null; document.getElementById('app').style.display='none'; document.getElementById('login-overlay').style.display='flex'; document.getElementById('login-code-input').value=''; showEnter(); }
-window.addEventListener('DOMContentLoaded',()=>{
-  document.getElementById('login-overlay').style.display='flex';
-  document.getElementById('app').style.display='none';
-  updateCipherOptions();
-});
 
-function showPage(name,btn){ document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active')); document.querySelectorAll('.sidebar-item').forEach(b=>b.classList.remove('active')); document.getElementById('page-'+name).classList.add('active'); btn.classList.add('active'); if(name==='history') loadHistory(); }
+// TABS
+function switchTab(name,btn){ document.querySelectorAll('.tab-section').forEach(s=>s.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); document.getElementById('tab-'+name).classList.add('active'); btn.classList.add('active'); if(name==='history') loadHistory(); }
 
-function switchInner(page,pane,btn){ const pageEl=document.getElementById('page-'+page); pageEl.querySelectorAll('.inner-tab').forEach(t=>t.classList.remove('active')); pageEl.querySelectorAll('.inner-pane').forEach(p=>p.classList.remove('active')); const paneEl=document.getElementById(page+'-'+pane)||document.getElementById('cipher-'+pane); if(paneEl) paneEl.classList.add('active'); btn.classList.add('active'); }
-
+// TOAST
 function showToast(msg,type=''){ const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show '+type; setTimeout(()=>t.className='toast',3500); }
+
+// ALGO
 function selectAlgo(el,groupId){ document.querySelectorAll('#'+groupId+' .algo-pill').forEach(p=>p.classList.remove('selected')); el.classList.add('selected'); }
+
+// CAPACITY
 function updateCapacity(){ const msg=document.getElementById('img-enc-message').value; const pct=Math.min(100,Math.round((msg.length*8/786432)*100)); document.getElementById('capacity-fill').style.width=pct+'%'; document.getElementById('capacity-label').textContent=pct+'% used'; }
+
+// FILE HANDLERS
 function handleImageFile(id,input){ if(!input.files[0]) return; const url=URL.createObjectURL(input.files[0]); const prev=document.getElementById(id+'-preview'); if(prev){prev.src=url;prev.classList.add('visible');} if(id==='img-enc') updateCapacity(); }
 function handleMediaFile(id,input,type){ if(!input.files[0]) return; const file=input.files[0]; const url=URL.createObjectURL(file); const prev=document.getElementById(id+'-preview'); const nameEl=document.getElementById(id+'-name'); if(prev){prev.src=url;prev.classList.add('visible');} if(nameEl){nameEl.textContent=file.name;nameEl.classList.add('visible');} if(id==='vid-enc-carrier'){const w=document.getElementById('vid-enc-size-warn');if(w)w.classList.toggle('visible',file.size>50*1024*1024);} }
 
+// MODE SWITCHERS
+function setImgMode(mode){ ['encode','decode'].forEach(m=>{document.getElementById('img-mode-'+m).classList.toggle('active',m===mode);}); document.getElementById('img-encode-area').style.display=mode==='encode'?'':'none'; document.getElementById('img-decode-area').style.display=mode==='decode'?'':'none'; }
+function setAudMode(mode){ ['encode','decode'].forEach(m=>{document.getElementById('aud-mode-'+m).classList.toggle('active',m===mode);}); document.getElementById('aud-encode-area').style.display=mode==='encode'?'':'none'; document.getElementById('aud-decode-area').style.display=mode==='decode'?'':'none'; }
+function setVidMode(mode){ ['encode','decode'].forEach(m=>{document.getElementById('vid-mode-'+m).classList.toggle('active',m===mode);}); document.getElementById('vid-encode-area').style.display=mode==='encode'?'':'none'; document.getElementById('vid-decode-area').style.display=mode==='decode'?'':'none'; }
 function setAudEncMode(mode){ audEncMode=mode; ['text','audio'].forEach(m=>{document.getElementById('aud-enc-mode-'+m).classList.toggle('active',m===mode);}); document.getElementById('aud-enc-text-card').style.display=mode==='text'?'':'none'; document.getElementById('aud-enc-hidden-card').style.display=mode==='audio'?'':'none'; }
 function setVidEncMode(mode){ vidEncMode=mode; ['text','image','audio'].forEach(m=>{document.getElementById('vid-enc-mode-'+m).classList.toggle('active',m===mode);}); document.getElementById('vid-enc-text-card').style.display=mode==='text'?'':'none'; document.getElementById('vid-enc-image-card').style.display=mode==='image'?'':'none'; document.getElementById('vid-enc-audio-card').style.display=mode==='audio'?'':'none'; }
-function setCipherMode(mode){ cipherMode=mode; }
+function setTSMode(mode){ ['encode','decode'].forEach(m=>{document.getElementById('ts-mode-'+m).classList.toggle('active',m===mode);}); document.getElementById('ts-encode-area').style.display=mode==='encode'?'':'none'; document.getElementById('ts-decode-area').style.display=mode==='decode'?'':'none'; }
+function setCipherMode(mode){ cipherMode=mode; ['encrypt','decrypt'].forEach(m=>{document.getElementById('cipher-mode-'+m).classList.toggle('active',m===mode);}); document.getElementById('cipher-btn-text').textContent=mode==='encrypt'?'Encrypt Text':'Decrypt Text'; }
 function updateCipherOptions(){ const el=document.getElementById('cipher-type'); if(!el) return; const c=el.value; document.getElementById('cipher-shift-wrap').classList.toggle('visible',c==='caesar'); document.getElementById('cipher-key-wrap').classList.toggle('visible',c==='vigenere'||c==='beaufort'); document.getElementById('cipher-rails-wrap').classList.toggle('visible',c==='railfence'); }
 
+// IMAGE
 async function doImgEncode(){ const file=document.getElementById('img-enc-file').files[0]; const message=document.getElementById('img-enc-message').value.trim(); const key=document.getElementById('img-enc-key').value.trim(); if(!file) return showToast('Please select a carrier image.','error'); if(!message) return showToast('Please enter a message.','error'); if(!key) return showToast('Please enter a key.','error'); setLoading('img-enc',true); try{ const fd=new FormData(); fd.append('image',file);fd.append('message',message);fd.append('key',key);fd.append('user_code',currentUserCode);fd.append('algorithm',document.querySelector('#img-enc-algo .algo-pill.selected')?.textContent.trim()??'LSB-1');fd.append('randomize',document.getElementById('img-enc-randomize').checked);fd.append('preserve_exif',document.getElementById('img-enc-exif').checked); const res=await fetch(API+'/encode/',{method:'POST',body:fd}); if(!res.ok){const e=await res.json();throw new Error(e.detail||'Encoding failed');} dlBlob(await res.blob(),'stego_image.png'); showToast('Image encoded and downloading!','success'); }catch(e){showToast(e.message,'error');}finally{setLoading('img-enc',false);} }
 async function doImgDecode(){ const file=document.getElementById('img-dec-file').files[0]; const key=document.getElementById('img-dec-key').value.trim(); if(!file) return showToast('Please upload a stego image.','error'); if(!key) return showToast('Please enter the key.','error'); setLoading('img-dec',true); try{ const fd=new FormData(); fd.append('image',file);fd.append('key',key);fd.append('user_code',currentUserCode);fd.append('algorithm',document.querySelector('#img-dec-algo .algo-pill.selected')?.textContent.trim()??'LSB-1');fd.append('randomize',document.getElementById('img-dec-randomize').checked); const res=await fetch(API+'/decode/',{method:'POST',body:fd}); const data=await res.json(); if(!res.ok) throw new Error(data.detail||'Decoding failed'); document.getElementById('img-dec-result').textContent=data.message; document.getElementById('img-dec-meta-algo').textContent=document.querySelector('#img-dec-algo .algo-pill.selected')?.textContent.trim()??'LSB-1'; document.getElementById('img-dec-meta-size').textContent=data.message.length+' B'; showToast('Message extracted!','success'); }catch(e){showToast(e.message,'error');}finally{setLoading('img-dec',false);} }
+
+// AUDIO
 async function doAudEncode(){ const carrier=document.getElementById('aud-enc-carrier').files[0]; const key=document.getElementById('aud-enc-key').value.trim(); if(!carrier) return showToast('Please select a carrier audio file.','error'); if(!key) return showToast('Please enter a key.','error'); setLoading('aud-enc',true); try{ const fd=new FormData();fd.append('key',key);fd.append('user_code',currentUserCode); let endpoint; if(audEncMode==='text'){const msg=document.getElementById('aud-enc-message').value.trim();if(!msg){setLoading('aud-enc',false);return showToast('Please enter a message.','error');}fd.append('audio',carrier);fd.append('message',msg);endpoint=API+'/audio/encode/text';}else{const hidden=document.getElementById('aud-enc-hidden').files[0];if(!hidden){setLoading('aud-enc',false);return showToast('Please select the hidden audio file.','error');}fd.append('carrier',carrier);fd.append('hidden',hidden);endpoint=API+'/audio/encode/audio';} const res=await fetch(endpoint,{method:'POST',body:fd}); if(!res.ok){const e=await res.json();throw new Error(e.detail||'Audio encoding failed');} const ext=res.headers.get('content-disposition')?.match(/filename=.+\.(\w+)/)?.[1]??'wav'; dlBlob(await res.blob(),'stego_audio.'+ext); showToast('Audio encoded and downloading!','success'); }catch(e){showToast(e.message,'error');}finally{setLoading('aud-enc',false);} }
 async function doAudDecode(){ const file=document.getElementById('aud-dec-file').files[0]; const key=document.getElementById('aud-dec-key').value.trim(); if(!file) return showToast('Please upload a stego audio file.','error'); if(!key) return showToast('Please enter the key.','error'); setLoading('aud-dec',true); try{ const fd=new FormData();fd.append('audio',file);fd.append('key',key);fd.append('user_code',currentUserCode); const res=await fetch(API+'/audio/decode/',{method:'POST',body:fd}); const ct=res.headers.get('content-type')??''; if(ct.includes('application/json')){const data=await res.json();if(!res.ok)throw new Error(data.detail||'Decoding failed');renderTextResult('aud-dec-result-area',data.message);showToast('Text extracted!','success');}else{if(!res.ok)throw new Error('Decoding failed');const blob=await res.blob();const disp=res.headers.get('content-disposition')??'';const fname=disp.match(/filename=(.+)/)?.[1]??'extracted_audio.wav';renderAudioResult('aud-dec-result-area',blob,fname);showToast('Audio extracted!','success');} }catch(e){showToast(e.message,'error');}finally{setLoading('aud-dec',false);} }
+
+// VIDEO
 async function doVidEncode(){ const carrier=document.getElementById('vid-enc-carrier').files[0]; const key=document.getElementById('vid-enc-key').value.trim(); if(!carrier) return showToast('Please select a carrier video.','error'); if(carrier.size>50*1024*1024) return showToast('Video exceeds 50MB.','error'); if(!key) return showToast('Please enter a key.','error'); setLoading('vid-enc',true); try{ const fd=new FormData();fd.append('key',key);fd.append('user_code',currentUserCode); let endpoint; if(vidEncMode==='text'){const msg=document.getElementById('vid-enc-message').value.trim();if(!msg){setLoading('vid-enc',false);return showToast('Please enter a message.','error');}fd.append('video',carrier);fd.append('message',msg);endpoint=API+'/video/encode/text';}else if(vidEncMode==='image'){const img=document.getElementById('vid-enc-image').files[0];if(!img){setLoading('vid-enc',false);return showToast('Please select the hidden image.','error');}fd.append('video',carrier);fd.append('image',img);endpoint=API+'/video/encode/image';}else{const audio=document.getElementById('vid-enc-audio').files[0];if(!audio){setLoading('vid-enc',false);return showToast('Please select the hidden audio.','error');}fd.append('video',carrier);fd.append('audio',audio);endpoint=API+'/video/encode/audio';} const res=await fetch(endpoint,{method:'POST',body:fd}); if(!res.ok){const e=await res.json();throw new Error(e.detail||'Video encoding failed');} dlBlob(await res.blob(),'stego_'+carrier.name); showToast('Video encoded and downloading!','success'); }catch(e){showToast(e.message,'error');}finally{setLoading('vid-enc',false);} }
 async function doVidDecode(){ const file=document.getElementById('vid-dec-file').files[0]; const key=document.getElementById('vid-dec-key').value.trim(); if(!file) return showToast('Please upload a stego video.','error'); if(!key) return showToast('Please enter the key.','error'); setLoading('vid-dec',true); try{ const fd=new FormData();fd.append('video',file);fd.append('key',key);fd.append('user_code',currentUserCode); const res=await fetch(API+'/video/decode/',{method:'POST',body:fd}); const ct=res.headers.get('content-type')??''; if(ct.includes('application/json')){const data=await res.json();if(!res.ok)throw new Error(data.detail||'Decoding failed');if(data.type==='text'){renderTextResult('vid-dec-result-area',data.message);showToast('Text extracted!','success');}}else{if(!res.ok)throw new Error('Decoding failed');const blob=await res.blob();const disp=res.headers.get('content-disposition')??'';const fname=disp.match(/filename=(.+)/)?.[1]??'extracted_file';const ct2=res.headers.get('content-type')??'';if(ct2.startsWith('audio/')){renderAudioResult('vid-dec-result-area',blob,fname);}else{renderImageResult('vid-dec-result-area',blob,fname);}showToast('File extracted!','success');} }catch(e){showToast(e.message,'error');}finally{setLoading('vid-dec',false);} }
+
+// TEXT STEGO
 async function doTSEncode(){ const cover=document.getElementById('ts-cover').value.trim(); const secret=document.getElementById('ts-secret').value.trim(); if(!cover) return showToast('Please enter cover text.','error'); if(!secret) return showToast('Please enter a secret message.','error'); setLoading('ts-enc',true); try{ const res=await fetch(API+'/text/encode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cover_text:cover,secret})}); const data=await res.json(); if(!res.ok) throw new Error(data.detail||'Failed'); document.getElementById('ts-stego-output').textContent=data.stego_text; document.getElementById('ts-encode-result').style.display=''; showToast('Message hidden!','success'); }catch(e){showToast(e.message,'error');}finally{setLoading('ts-enc',false);} }
 async function doTSDecode(){ const stego=document.getElementById('ts-stego-input').value; if(!stego.trim()) return showToast('Please paste the stego text.','error'); setLoading('ts-dec',true); try{ const res=await fetch(API+'/text/decode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stego_text:stego})}); const data=await res.json(); if(!res.ok) throw new Error(data.detail||'Failed'); document.getElementById('ts-decoded-output').textContent=data.secret; document.getElementById('ts-decode-result').style.display=''; showToast('Message extracted!','success'); }catch(e){showToast(e.message,'error');}finally{setLoading('ts-dec',false);} }
-async function doCipher(){ const inputId=cipherMode==='encrypt'?'cipher-input':'cipher-input-dec'; const outputId=cipherMode==='encrypt'?'cipher-output':'cipher-output-dec'; const spinnerId=cipherMode==='encrypt'?'cipher-spinner':'cipher-spinner-dec'; const btnId=cipherMode==='encrypt'?'cipher-btn-text':'cipher-btn-text-dec'; const text=document.getElementById(inputId).value.trim(); if(!text) return showToast('Please enter some text.','error'); const cipher=document.getElementById('cipher-type').value; const shift=parseInt(document.getElementById('cipher-shift').value)||3; const key=document.getElementById('cipher-key').value.trim(); const rails=parseInt(document.getElementById('cipher-rails').value)||3; if((cipher==='vigenere'||cipher==='beaufort')&&!key) return showToast('This cipher requires a key.','error'); const btn=document.getElementById(btnId)?.closest('button'); const sp=document.getElementById(spinnerId); if(btn) btn.disabled=true; if(sp) sp.style.display='block'; try{ const res=await fetch(API+'/cipher/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,cipher,mode:cipherMode,key,shift,rails})}); const data=await res.json(); if(!res.ok) throw new Error(data.detail||'Failed'); document.getElementById(outputId).textContent=data.output; showToast(cipherMode==='encrypt'?'Encrypted!':'Decrypted!','success'); }catch(e){showToast(e.message,'error');}finally{if(btn)btn.disabled=false;if(sp)sp.style.display='none';} }
-function sendToStego(){ const output=document.getElementById('cipher-output').textContent; if(!output||output==='Output will appear after processing.') return showToast('No output to send.','error'); document.getElementById('ts-secret').value=output; document.querySelector('.sidebar-item[onclick*="text-stego"]').click(); showToast('Sent to Text Stego!','success'); }
 
+// CIPHER
+async function doCipher(){ const text=document.getElementById('cipher-input').value.trim(); if(!text) return showToast('Please enter some text.','error'); const cipher=document.getElementById('cipher-type').value; const shift=parseInt(document.getElementById('cipher-shift').value)||3; const key=document.getElementById('cipher-key').value.trim(); const rails=parseInt(document.getElementById('cipher-rails').value)||3; if((cipher==='vigenere'||cipher==='beaufort')&&!key) return showToast('This cipher requires a key.','error'); setLoading('cipher',true); try{ const res=await fetch(API+'/cipher/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,cipher,mode:cipherMode,key,shift,rails})}); const data=await res.json(); if(!res.ok) throw new Error(data.detail||'Failed'); document.getElementById('cipher-output').textContent=data.output; showToast(cipherMode==='encrypt'?'Encrypted!':'Decrypted!','success'); }catch(e){showToast(e.message,'error');}finally{setLoading('cipher',false);} }
+function sendToStego(){ const output=document.getElementById('cipher-output').textContent; if(!output||output==='Output will appear after processing.') return showToast('No output to send.','error'); document.getElementById('ts-secret').value=output; document.querySelector('.tab-btn[onclick*="text-stego"]').click(); showToast('Sent to Text Stego!','success'); }
+
+// RENDERERS
 function renderTextResult(id,text){ document.getElementById(id).innerHTML=`<div class="result-box" id="${id}-text">${text}</div><div class="result-actions" style="margin-top:10px;"><button class="result-btn" onclick="copyResult('${id}-text')">Copy</button><button class="result-btn" onclick="downloadText('${id}-text','extracted_message.txt')">Download</button></div>`; }
 function renderAudioResult(id,blob,fname){ const url=URL.createObjectURL(blob); document.getElementById(id).innerHTML=`<div style="font-size:13px;color:var(--gray-500);margin-bottom:8px;">Hidden audio extracted:</div><audio controls src="${url}" style="width:100%;border-radius:6px;"></audio><div class="result-actions" style="margin-top:10px;"><a class="result-btn" href="${url}" download="${fname}">Download</a></div>`; }
 function renderImageResult(id,blob,fname){ const url=URL.createObjectURL(blob); document.getElementById(id).innerHTML=`<div style="font-size:13px;color:var(--gray-500);margin-bottom:8px;">Hidden image extracted:</div><img src="${url}" style="max-width:100%;border-radius:6px;border:1px solid var(--gray-200);" /><div class="result-actions" style="margin-top:10px;"><a class="result-btn" href="${url}" download="${fname}">Download</a></div>`; }
+
+// UTILITIES
 function dlBlob(blob,fname){ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;a.click(); }
 function copyResult(id){ navigator.clipboard.writeText(document.getElementById(id)?.textContent??'').then(()=>showToast('Copied!','success')); }
 function downloadText(id,fname){ dlBlob(new Blob([document.getElementById(id)?.textContent??''],{type:'text/plain'}),fname); }
 
+// HISTORY
 async function loadHistory(){ const tbody=document.getElementById('history-tbody'); tbody.innerHTML='<tr><td colspan="5" class="empty-state">Loading…</td></tr>'; try{ const [encRes,decRes,sumRes]=await Promise.all([fetch(API+'/logs/encode?user_code='+currentUserCode),fetch(API+'/logs/decode?user_code='+currentUserCode),fetch(API+'/logs/summary?user_code='+currentUserCode)]); const [encData,decData,sumData]=await Promise.all([encRes.json(),decRes.json(),sumRes.json()]); const imgOps=(sumData.total_encodes??0)+(sumData.total_decodes??0); const audioOps=(sumData.total_audio_encodes??0)+(sumData.total_audio_decodes??0); const videoOps=encData.filter(r=>r.type?.startsWith('video')).length+decData.filter(r=>r.type?.startsWith('video')).length; document.getElementById('s-image').textContent=imgOps; document.getElementById('s-audio').textContent=audioOps; document.getElementById('s-video').textContent=videoOps; document.getElementById('s-total').textContent=imgOps+audioOps+videoOps; allHistoryRows=[...encData.map(r=>({...r,_dir:'enc'})),...decData.map(r=>({...r,_dir:'dec'}))].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)); renderHistory(allHistoryRows); }catch(e){ tbody.innerHTML='<tr><td colspan="5" class="empty-state">Could not load history.</td></tr>'; } }
 function renderHistory(rows){ const tbody=document.getElementById('history-tbody'); if(!rows.length){tbody.innerHTML='<tr><td colspan="5" class="empty-state">No operations yet.</td></tr>';return;} tbody.innerHTML=rows.map(r=>{ const t=r.type??''; let lbl,cls; if(t.startsWith('video')){lbl='Video';cls='type-video';}else if(t.startsWith('audio')){lbl='Audio';cls='type-audio';}else if(t.startsWith('cipher')){lbl='Cipher';cls='type-cipher';}else if(r._dir==='enc'){lbl='Img Enc';cls='type-encode';}else{lbl='Img Dec';cls='type-decode';} const details=r.message_length?`${r.message_length} chars`:(r.algorithm??t??'—'); const ok=r.status==='success'; const si=ok?'<span class="status-icon ok"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>':'<span class="status-icon fail"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>'; const time=r.timestamp?new Date(r.timestamp).toLocaleString():'—'; return `<tr><td><span class="type-badge ${cls}">${lbl}</span></td><td style="font-family:monospace;font-size:12px;">${r.filename??'—'}</td><td>${details}</td><td>${si}</td><td style="color:var(--gray-400);font-size:12px;">${time}</td></tr>`; }).join('');}
 function filterHistory(type,btn){ document.querySelectorAll('.filter-pill').forEach(p=>p.classList.remove('active')); btn.classList.add('active'); let f; if(type==='all')f=allHistoryRows; else if(type==='image')f=allHistoryRows.filter(r=>!r.type||(!r.type.startsWith('audio')&&!r.type.startsWith('video')&&!r.type.startsWith('cipher'))); else f=allHistoryRows.filter(r=>r.type?.startsWith(type)); renderHistory(f); }
