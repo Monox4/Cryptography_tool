@@ -13,6 +13,7 @@
     --gray-300: #D1D5DB; --gray-400: #9CA3AF; --gray-500: #6B7280;
     --gray-700: #374151; --gray-900: #111827;
     --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-pill: 999px;
+    --sidebar-w: 200px;
   }
   body { font-family: 'Inter', sans-serif; background: #fff; color: var(--gray-900); min-height: 100vh; }
 
@@ -179,6 +180,17 @@
   .toast.success { background: #059669; }
   .toast.error   { background: #DC2626; }
 
+  /* SIDEBAR */
+  .app-layout { display: flex; min-height: calc(100vh - 52px); }
+  .sidebar { width: var(--sidebar-w); flex-shrink: 0; background: var(--gray-50); border-right: 1px solid var(--gray-200); padding: 12px 8px; position: sticky; top: 52px; height: calc(100vh - 52px); overflow-y: auto; }
+  .sidebar-section { margin-bottom: 20px; }
+  .sidebar-label { font-size: 10px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.08em; padding: 0 8px; margin-bottom: 4px; display: block; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500; color: var(--gray-700); cursor: pointer; transition: all 0.12s; border: none; background: none; width: 100%; text-align: left; }
+  .sidebar-item:hover { background: var(--gray-200); }
+  .sidebar-item.active { background: var(--blue-light); color: var(--blue); font-weight: 600; }
+  .sidebar-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+  .content-area { flex: 1; min-width: 0; }
+
   .tab-section { display: none; }
   .tab-section.active { display: block; }
   .col-stack { display: flex; flex-direction: column; gap: 16px; }
@@ -225,14 +237,43 @@
   </div>
 </nav>
 
-<div class="tab-bar">
-  <button class="tab-btn active" onclick="switchTab('image',this)">Image</button>
-  <button class="tab-btn" onclick="switchTab('audio',this)">Audio</button>
-  <button class="tab-btn" onclick="switchTab('video',this)">Video</button>
-  <button class="tab-btn" onclick="switchTab('text-stego',this)">Text Stego</button>
-  <button class="tab-btn" onclick="switchTab('cipher',this)">Text Cipher</button>
-  <button class="tab-btn" onclick="switchTab('history',this)">History</button>
+<div class="app-layout">
+<div class="sidebar">
+  <div class="sidebar-section">
+    <span class="sidebar-label">Steganography</span>
+    <button class="sidebar-item active" onclick="switchTab('image',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      Image
+    </button>
+    <button class="sidebar-item" onclick="switchTab('audio',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      Audio
+    </button>
+    <button class="sidebar-item" onclick="switchTab('video',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+      Video
+    </button>
+    <button class="sidebar-item" onclick="switchTab('text-stego',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Text Stego
+    </button>
+  </div>
+  <div class="sidebar-section">
+    <span class="sidebar-label">Cryptography</span>
+    <button class="sidebar-item" onclick="switchTab('cipher',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Text Cipher
+    </button>
+  </div>
+  <div class="sidebar-section">
+    <span class="sidebar-label">Account</span>
+    <button class="sidebar-item" onclick="switchTab('history',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      History
+    </button>
+  </div>
 </div>
+<div class="content-area">
 
 <main>
 
@@ -589,7 +630,9 @@
 </div>
 
 </main>
-</div>
+</div><!-- /content-area -->
+</div><!-- /app-layout -->
+</div><!-- /app -->
 <div class="toast" id="toast"></div>
 
 <script>
@@ -611,7 +654,7 @@ function loginWith(code){ currentUserCode=code; document.getElementById('login-o
 function doLogout(){ currentUserCode=null; document.getElementById('app').style.display='none'; document.getElementById('login-overlay').style.display='flex'; document.getElementById('login-code-input').value=''; showEnter(); }
 
 // TABS
-function switchTab(name,btn){ document.querySelectorAll('.tab-section').forEach(s=>s.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); document.getElementById('tab-'+name).classList.add('active'); btn.classList.add('active'); if(name==='history') loadHistory(); }
+function switchTab(name,btn){ document.querySelectorAll('.tab-section').forEach(s=>s.classList.remove('active')); document.querySelectorAll('.sidebar-item').forEach(b=>b.classList.remove('active')); document.getElementById('tab-'+name).classList.add('active'); btn.classList.add('active'); if(name==='history') loadHistory(); }
 
 // TOAST
 function showToast(msg,type=''){ const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show '+type; setTimeout(()=>t.className='toast',3500); }
@@ -654,7 +697,7 @@ async function doTSDecode(){ const stego=document.getElementById('ts-stego-input
 
 // CIPHER
 async function doCipher(){ const text=document.getElementById('cipher-input').value.trim(); if(!text) return showToast('Please enter some text.','error'); const cipher=document.getElementById('cipher-type').value; const shift=parseInt(document.getElementById('cipher-shift').value)||3; const key=document.getElementById('cipher-key').value.trim(); const rails=parseInt(document.getElementById('cipher-rails').value)||3; if((cipher==='vigenere'||cipher==='beaufort')&&!key) return showToast('This cipher requires a key.','error'); setLoading('cipher',true); try{ const res=await fetch(API+'/cipher/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,cipher,mode:cipherMode,key,shift,rails})}); const data=await res.json(); if(!res.ok) throw new Error(data.detail||'Failed'); document.getElementById('cipher-output').textContent=data.output; showToast(cipherMode==='encrypt'?'Encrypted!':'Decrypted!','success'); }catch(e){showToast(e.message,'error');}finally{setLoading('cipher',false);} }
-function sendToStego(){ const output=document.getElementById('cipher-output').textContent; if(!output||output==='Output will appear after processing.') return showToast('No output to send.','error'); document.getElementById('ts-secret').value=output; document.querySelector('.tab-btn[onclick*="text-stego"]').click(); showToast('Sent to Text Stego!','success'); }
+function sendToStego(){ const output=document.getElementById('cipher-output').textContent; if(!output||output==='Output will appear after processing.') return showToast('No output to send.','error'); document.getElementById('ts-secret').value=output; document.querySelector('.sidebar-item[onclick*="text-stego"]').click(); showToast('Sent to Text Stego!','success'); }
 
 // RENDERERS
 function renderTextResult(id,text){ document.getElementById(id).innerHTML=`<div class="result-box" id="${id}-text">${text}</div><div class="result-actions" style="margin-top:10px;"><button class="result-btn" onclick="copyResult('${id}-text')">Copy</button><button class="result-btn" onclick="downloadText('${id}-text','extracted_message.txt')">Download</button></div>`; }
